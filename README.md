@@ -11,6 +11,8 @@
 - [视频提示词写作指南·全参考模式](./h3/video-prompt-writing-guide-ref.md) — [原文](https://huggingface.co/MiniMaxAI/MiniMax-H3/blob/main/docs/VIDEO_PROMPT_WRITING_GUIDE_ref_en.md)：六段式改写输出格式、参考标签与保留性分析
 - [ComfyUI MiniMax H3 视频生成指南](./h3/comfyui-minimax-h3-tutorial.md) — [原文](https://docs.comfy.org/tutorials/video/minimax/minimax-h3)：工作流索引、分辨率设置、Sage Attention 加速
 - [MiniMax H3 Day-0 Support in ComfyUI](./h3/minimax-h3-day-0-support-in-comfyui.md) — [原文](https://blog.comfy.org/p/minimax-h3-day-0-support-in-comfyui)：ComfyUI 官方博客，本地推理优化（显存降 66%，RTX 3060 可跑）
+- [ComfyUI-Agent-Kit](./h3/comfyui-agent-kit.md) — [原文](https://github.com/SlavaSexton/ComfyUI-Agent-Kit)：让 Claude Code/Codex/Gemini CLI/Qwen Code 驱动本地 ComfyUI 的多智能体工具包（README 翻译）
+- [ComfyUI-Agent-Kit 内置 minimax-h3 技能](./h3/comfyui-agent-kit-minimax-h3-skill.md) — [原文](https://github.com/SlavaSexton/ComfyUI-Agent-Kit/blob/main/shared/minimax-h3/SKILL.md)：H3 三字段提示词格式、`<d>` 对话标记、量化与加速阶梯、排障表
 
 ## 说明
 
