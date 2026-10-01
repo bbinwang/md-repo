@@ -14,6 +14,7 @@
 - [ComfyUI-Agent-Kit](./h3/comfyui-agent-kit.md) — [原文](https://github.com/SlavaSexton/ComfyUI-Agent-Kit)：让 Claude Code/Codex/Gemini CLI/Qwen Code 驱动本地 ComfyUI 的多智能体工具包（README 翻译）
 - [ComfyUI-Agent-Kit 内置 minimax-h3 技能](./h3/comfyui-agent-kit-minimax-h3-skill.md) — [原文](https://github.com/SlavaSexton/ComfyUI-Agent-Kit/blob/main/shared/minimax-h3/SKILL.md)：H3 三字段提示词格式、`<d>` 对话标记、量化与加速阶梯、排障表
 - [Minimax-H3-Prompt-AgentSkill](./h3/h3-prompt-agentskill.md) — [原文](https://github.com/benjiyaya/Minimax-H3-Prompt-AgentSkill)：Hermes Agent 技能，粗创意+素材 → H3 生产级提示词（README 翻译）；配套译文：[SKILL.md](./h3/h3-prompt-agentskill-SKILL.md) · [基础多镜头格式](./h3/h3-prompt-agentskill-base-multishot-format.md) · [Ref2VA 六段式格式](./h3/h3-prompt-agentskill-ref2va-format.md) · [创意示范集](./h3/h3-prompt-agentskill-creative-showcase.md)
+- [MiniMax H3 官方 Skills 目录 README](./h3/minimax-h3-skills-readme.md) — [原文](https://github.com/MiniMax-AI/MiniMax-H3/tree/main/skills)：官方随附 1 个提示词写作技能 + 8 个风格视频生成技能的安装与说明（技能文件官方自带 SKILL.cn.md 中文版，未重复翻译）
 
 ### comfyui/ — ComfyUI 相关
 
