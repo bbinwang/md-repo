@@ -18,6 +18,7 @@
 ### comfyui/ — ComfyUI 相关
 
 - [视频提示词写作指南·全参考模式（ComfyUI_Fill-Nodes 副本）](./comfyui/video-prompt-writing-guide-ref.md) — [原文](https://github.com/filliptm/ComfyUI_Fill-Nodes/blob/a32f9b6a5a55528731d9e6c38a2fd2ce89cb2819/nodes/audio/prompt_guides/VIDEO_PROMPT_WRITING_GUIDE_ref_en.md)：与 MiniMax 官方指南内容一致（MD5 校验相同），六段式改写输出格式
+- [视频提示词写作指南·基础任务（ComfyUI-MiniMaxH3-Prompt-Writer 副本）](./comfyui/video-prompt-writing-guide-base.md) — [原文](https://github.com/duckyshell/ComfyUI-MiniMaxH3-Prompt-Writer/blob/8292bb40b41c1e20271bbee9ed1a4d87b6281029/guides/VIDEO_PROMPT_WRITING_GUIDE_base_en.md)：与 MiniMax 官方指南内容一致（忽略空白差异后相同），T2VA/I2VA/FL2VA/L2VA 提示词结构
 
 ## 说明
 
