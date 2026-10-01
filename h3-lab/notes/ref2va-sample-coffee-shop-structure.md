@@ -67,6 +67,52 @@ class SH1,SH2,SH3 shot
 class ROOM,VOX,LAF,MUS aud
 ```
 
+## retention_analysis：各主体的 fully_preserved 标注
+
+> 依据指南第 4 节 `retention_analysis` 规范逐条标注。可见内容取值：`fully_preserved` / `partially_preserved` / `attribute_transfer` / `weak_reference`；音频取值：`fully_copy` / `partially_copy` / `reference` / `weak_reference`。
+> 本示例所有可见主体均为 `fully_preserved`，唯一音频 `Audio 1` 为 `reference`（只借音色、不复制原信号）。新增剧情动作不计为参考保真度损失。
+
+```text
+<Subject 1> (appears in [Shot 1], [Shot 2], [Shot 3]): fully_preserved -
+  咖啡店场景（砖墙、橙色沙发、花纹抱枕、霓虹灯、木茶几）完整保留为全程背景，
+  三镜头机位变化下布景元素不变形、不消失。来源：<Picture 1>。
+
+<Subject 2> (appears in [Shot 1], [Shot 2], [Shot 3]): fully_preserved -
+  白色萨摩耶（厚白毛、尖耳、黑鼻、卷尾）作为可辨识角色全程保留，
+  扑食、被抱、被抚摸各动作不改变其品种与外形特征。来源：<Picture 2>, <Picture 3>, <Picture 4>。
+
+<Subject 3> (appears in [Shot 1], [Shot 2], [Shot 3]): fully_preserved -
+  金发女子说话人 S1（长金发、浅粉衬衫、卷袖）完整保留；对白与表情
+  （缩手护饼、歉意软化、举饼致意）为目标剧情内的新增动作，不计为参考保真度损失。
+  来源：<Video 1>；音色参考 <Audio 1>。
+
+<Subject 4> (appears in [Shot 1], [Shot 2], [Shot 3]): fully_preserved -
+  褐发男子说话人 S2（短卷褐发、深灰帽衫、抽绳）完整保留；牵绳入场、
+  抱狗、安抚均为目标剧情内新增动作，服装与外形特征不变。来源：<Video 2>。
+
+<Picture 1> ([Shot 1] background): fully_preserved -
+  咖啡店实景作为场景底图，三镜头内完整保留，无风格改写。
+
+<Picture 2> ([Shot 1], [Shot 2], [Shot 3] character): fully_preserved -
+  萨摩耶正面参考图，角色外形特征全程一致保留。
+
+<Picture 3> ([Shot 1], [Shot 2], [Shot 3] character): fully_preserved -
+  萨摩耶侧面参考图，用于维持毛色与体态一致性。
+
+<Picture 4> ([Shot 1], [Shot 2], [Shot 3] character): fully_preserved -
+  萨摩耶细节参考图，用于维持面部与卷尾一致性。
+
+<Video 1> (character and acting reference): fully_preserved -
+  金发女子作为 S1 的角色与表演基准完整保留，目标视频沿用其身份与气质。
+
+<Video 2> (character and acting reference): fully_preserved -
+  灰帽衫男子作为 S2 的角色与表演基准完整保留。
+
+<Audio 1>: reference -
+  不复制原始音频信号；目标说话人 S1 仅参考 <Audio 1> 的音色与语气
+  （轻懊恼 → 笑意），对白内容由目标剧情重写，非 1:1 复用。
+```
+
 ## 结构图 2：时间线（镜头推进 + 声音事件）
 
 ```mermaid
@@ -95,11 +141,11 @@ Note over SND: 咖啡店室内 room tone 全程垫底 非叙事音乐无
 
 ## 与六段式输出的对应
 
-| 六段式小节 | 对应结构图 1 部分 |
+| 六段式小节 | 对应本文部分 |
 |---|---|
-| `subject_definitions` | Subjects 层（SUB1–SUB4，含素材来源） |
-| `summary` | 顶层箭头流：输入素材 → 目标视频 |
-| `retention_analysis` | 各主体的 fully_preserved 标注 |
-| `detailed_description` | Shot 层（SH1 → SH2 → SH3 时间推进） |
-| `overall_soundscape` | 声音层（ROOM / VOX / LAF） |
+| `subject_definitions` | 结构图 1 Subjects 层（SUB1–SUB4，含素材来源） |
+| `summary` | 结构图 1 顶层箭头流：输入素材 → 目标视频 |
+| `retention_analysis` | 「各主体的 fully_preserved 标注」小节（10 条可见 + 1 条音频） |
+| `detailed_description` | 结构图 1 Shot 层 + 结构图 2 时间线（SH1 → SH2 → SH3） |
+| `overall_soundscape` | 结构图 1 声音层（ROOM / VOX / LAF） |
 | `non_diegetic_music` | MUS（N/A） |
