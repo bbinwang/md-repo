@@ -1,0 +1,2248 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>意图分类评测报告 v2 · 爱人专用 13 类 vs 通用 13 类</title>
+<style>
+  :root { --ink:#1f2430; --muted:#6b7280; --line:#e5e7eb; --ok:#15803d; --ok-bg:#f0fdf4;
+          --bad:#b91c1c; --bad-bg:#fef2f2; --warn:#92400e; --warn-bg:#fffbeb; --accent:#4338ca; }
+  * { box-sizing:border-box; }
+  body { font-family:"PingFang SC","Hiragino Sans GB","Microsoft YaHei",system-ui,sans-serif;
+         color:var(--ink); margin:0; background:#f8fafc; line-height:1.7; }
+  .wrap { max-width:900px; margin:0 auto; padding:40px 28px 64px; }
+  header { border-bottom:2px solid var(--ink); padding-bottom:16px; margin-bottom:28px; }
+  h1 { font-size:22px; margin:0 0 6px; }
+  .meta { color:var(--muted); font-size:13px; }
+  .v2 { display:inline-block; background:var(--accent); color:#fff; border-radius:6px;
+        padding:1px 8px; font-size:13px; margin-right:6px; }
+  h2 { font-size:17px; margin:36px 0 12px; padding-left:10px; border-left:4px solid var(--accent); }
+  h3 { font-size:15px; margin:18px 0 8px; }
+  table { width:100%; border-collapse:collapse; background:#fff; font-size:14px; }
+  th,td { border:1px solid var(--line); padding:8px 10px; text-align:left; vertical-align:top; }
+  th { background:#f1f5f9; font-weight:600; white-space:nowrap; }
+  td.num { text-align:right; font-variant-numeric:tabular-nums; white-space:nowrap; }
+  tr.hit td { background:var(--ok-bg); }
+  tr.miss td { background:var(--bad-bg); }
+  tr.total td { background:#f1f5f9; font-weight:700; }
+  .tag { display:inline-block; padding:0 7px; border-radius:999px; font-size:12px; font-weight:600; }
+  .tag.ok { background:var(--ok-bg); color:var(--ok); border:1px solid #bbf7d0; }
+  .tag.bad { background:var(--bad-bg); color:var(--bad); border:1px solid #fecaca; }
+  .score { font-size:28px; font-weight:700; font-variant-numeric:tabular-nums; }
+  .score small { font-size:14px; color:var(--muted); font-weight:400; }
+  .cols { display:flex; gap:24px; flex-wrap:wrap; margin:12px 0 4px; }
+  .cols > div { flex:1; min-width:240px; background:#fff; border:1px solid var(--line);
+                border-radius:10px; padding:14px 18px; }
+  .cols .label { color:var(--muted); font-size:13px; }
+  .err { background:#fff; border:1px solid var(--line); border-left:4px solid var(--bad);
+         border-radius:8px; padding:12px 16px; margin:12px 0; }
+  .err h3 { margin:0 0 6px; font-size:15px; }
+  .err p { margin:6px 0; font-size:14px; }
+  code { background:#f1f5f9; padding:1px 5px; border-radius:4px; font-size:13px; }
+  pre { background:#0f172a; color:#e2e8f0; border-radius:8px; padding:14px; overflow:auto;
+        font-size:12px; line-height:1.5; max-height:520px; }
+  pre.small { max-height:340px; }
+  details { border:1px solid var(--line); border-radius:8px; background:#fff; padding:10px 14px; margin:10px 0; }
+  summary { cursor:pointer; font-weight:600; font-size:14px; color:var(--accent); }
+  .note { background:var(--warn-bg); border:1px solid #fde68a; border-radius:8px;
+          padding:10px 14px; font-size:13px; color:var(--warn); }
+  .src { font-size:12.5px; color:var(--muted); }
+  footer { margin-top:48px; color:var(--muted); font-size:12px; border-top:1px solid var(--line); padding-top:12px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1><span class="v2">v2</span>意图分类评测报告 · 「爱人」专用 13 类 vs 通用 13 类</h1>
+  <div class="meta">
+    v2 生成于 2026-10-06 09:41 (CST) · 模型 kev-latest @ http://127.0.0.1:8009/v1/systemone（本机） ·
+    样本 18 条 · 每条双路共 36 次调用 · 耗时 53.7s<br>
+    v1（00:05 首轮）与 v2（09:40 复跑）输出<strong>逐条完全一致</strong>（答案与置信度到小数两位相同）→ 模型为确定性推理，差异不复现
+  </div>
+</header>
+
+<h2>一、总览</h2>
+<div class="cols">
+  <div><div class="label">专用 13 类（chat_overrides 合并后）</div>
+    <div class="score">15/18 <small>= 83.3%</small></div>
+    <div class="label">命中条目平均置信度 0.63</div></div>
+  <div><div class="label">通用 13 类（questions 默认）</div>
+    <div class="score">7/18 <small>= 38.9%</small></div>
+    <div class="label">平均置信度 0.46</div></div>
+</div>
+<p>同一模型、同一批消息，换用「爱人」专用定义后命中率 <strong>38.9% → 83.3%</strong>，chat_overrides 有效。</p>
+<div class="note">通用版的命中为严格标签匹配；其中「爱你 / 想你了」通用版答的是同义类「表达情感」（gold 为专用版叫法「情感表达」），
+按语义宽松计约 9/18（50%），结论不变。README 记录的 17/18 与本次 15/18 的差异并非随机波动（两轮复跑结果一致），
+更可能来自当时选项定义或样本的细微不同。</div>
+
+<h2>二、错误分析（专用版 3 条错例）</h2>
+
+<div class="err">
+  <h3>① 「你怎么才回我」：期望 情绪不满 → 实判 催问回复（conf 0.59）</h3>
+  <p><strong>类型：类间语义重叠。</strong>「催问回复」=「催我回话或问我怎么还没回」，「情绪不满」=「生气、抱怨、暗示我做得不好」——
+  这句话同时满足两者，属定义边界内的固有模糊。旁证：几乎同义的「你怎么还不回我」判对（催问回复 0.84），一对一对错说明是边界摇摆。</p>
+  <p><strong>建议：</strong>instructions 加裁决规则（如「带责问语气的催→情绪不满；就事论事的催→催问回复」），或调整该条标注。</p>
+</div>
+
+<div class="err">
+  <h3>② 「晚上吃什么」：期望 提问求助 → 实判 其他（conf 0.19）</h3>
+  <p><strong>类型：低置信漂移到「其他」。</strong>专用版「提问求助」例句里就有「中午吃什么」，理论上是送分题（通用版判对）；
+  但专用版 instructions 要求「先判断她是不是在要我的关注或回应，再归具体类别」——日常短问句在第一步落空后没有明确出口，
+  模型犹豫后漂进「其他」，违反了「能归入某类时不要选其他」。</p>
+  <p><strong>建议：</strong>专用 instructions 为日常问句补显式出口（「吃什么 / 去哪 这类问句 → 提问求助」）；
+  若语义是「约着一起吃」应归「约时间安排」，可顺手写清边界。</p>
+</div>
+
+<div class="err">
+  <h3>③ 「看了个超好笑的视频」：期望 分享内容 → 实判 闲聊分享（conf 0.55）</h3>
+  <p><strong>类型：gold 标注与定义文本不一致。</strong>专用版「分享内容」=「转发文章、视频、音乐、链接<em>给我</em>」，
+  而这句是转述自己的见闻，恰好落在「闲聊分享」的例句模式（『刚看到一只猫』）上——模型的选择反而更贴合定义文本，更像标注侧问题。</p>
+  <p><strong>建议：</strong>把「分享内容」描述改为「提到具体作品并分享，无论转发还是转述」，或修订 gold。</p>
+</div>
+
+<h2>三、错误模式小结</h2>
+<table>
+  <tr><th>模式</th><th>条数</th><th>对应</th><th>性质</th></tr>
+  <tr><td>类间语义重叠（情绪不满↔催问回复、闲聊分享↔分享内容）</td><td class="num">2</td><td>① ③</td><td>定义边界模糊 / 标注可商榷</td></tr>
+  <tr><td>两步指令导致漂移到「其他」</td><td class="num">1</td><td>②</td><td>instructions 结构问题，可修</td></tr>
+</table>
+<p>3 条错例置信度全部 &lt; 0.6（0.59 / 0.19 / 0.55），错误集中在模型不确定区；线上可将「置信度 &lt; 0.4」作为降级阈值。</p>
+
+<h2>四、全量明细（gold × 通用 × 专用，双版本各自命中）</h2>
+<table>
+  <tr><th>#</th><th>消息</th><th>金牌答案</th><th>通用答案</th><th class="num">conf</th><th>专用答案</th><th class="num">conf</th></tr>
+  <tr class="hit"><td class="num">1</td><td>爱你</td><td>情感表达</td><td>表达情感 <span class="tag bad">✗</span></td><td class="num">0.69</td><td><strong>情感表达</strong> <span class="tag ok">✓</span></td><td class="num">0.92</td></tr>
+  <tr class="hit"><td class="num">2</td><td>想你了</td><td>情感表达</td><td>表达情感 <span class="tag bad">✗</span></td><td class="num">0.82</td><td><strong>情感表达</strong> <span class="tag ok">✓</span></td><td class="num">0.89</td></tr>
+  <tr class="hit"><td class="num">3</td><td>明晚有空吗</td><td>约时间安排</td><td>约时间安排 <span class="tag ok">✓</span></td><td class="num">0.85</td><td><strong>约时间安排</strong> <span class="tag ok">✓</span></td><td class="num">0.47</td></tr>
+  <tr class="hit"><td class="num">4</td><td>今晚有空吗</td><td>约时间安排</td><td>约时间安排 <span class="tag ok">✓</span></td><td class="num">0.84</td><td><strong>约时间安排</strong> <span class="tag ok">✓</span></td><td class="num">0.56</td></tr>
+  <tr class="hit"><td class="num">5</td><td>你觉得牛蛙好吃吗</td><td>征求意见</td><td>征求意见 <span class="tag ok">✓</span></td><td class="num">0.83</td><td><strong>征求意见</strong> <span class="tag ok">✓</span></td><td class="num">0.85</td></tr>
+  <tr class="miss"><td class="num">6</td><td>你怎么才回我</td><td>情绪不满</td><td>其他 <span class="tag bad">✗</span></td><td class="num">0.34</td><td><strong>催问回复</strong> <span class="tag bad">✗</span></td><td class="num">0.59</td></tr>
+  <tr class="hit"><td class="num">7</td><td>刚到家</td><td>事务告知</td><td>问候寒暄 <span class="tag bad">✗</span></td><td class="num">0.32</td><td><strong>事务告知</strong> <span class="tag ok">✓</span></td><td class="num">0.79</td></tr>
+  <tr class="miss"><td class="num">8</td><td>晚上吃什么</td><td>提问求助</td><td>提问求助 <span class="tag ok">✓</span></td><td class="num">0.32</td><td><strong>其他</strong> <span class="tag bad">✗</span></td><td class="num">0.19</td></tr>
+  <tr class="hit"><td class="num">9</td><td>哼</td><td>撒娇讨关注</td><td>闲聊分享 <span class="tag bad">✗</span></td><td class="num">0.31</td><td><strong>撒娇讨关注</strong> <span class="tag ok">✓</span></td><td class="num">0.36</td></tr>
+  <tr class="hit"><td class="num">10</td><td>你是不是忘了答应我的事</td><td>情绪不满</td><td>其他 <span class="tag bad">✗</span></td><td class="num">0.33</td><td><strong>情绪不满</strong> <span class="tag ok">✓</span></td><td class="num">0.39</td></tr>
+  <tr class="hit"><td class="num">11</td><td>买好了吗？明天要用的</td><td>生活琐事</td><td>提问求助 <span class="tag bad">✗</span></td><td class="num">0.21</td><td><strong>生活琐事</strong> <span class="tag ok">✓</span></td><td class="num">0.58</td></tr>
+  <tr class="hit"><td class="num">12</td><td>你怎么还不回我</td><td>催问回复</td><td>其他 <span class="tag bad">✗</span></td><td class="num">0.27</td><td><strong>催问回复</strong> <span class="tag ok">✓</span></td><td class="num">0.84</td></tr>
+  <tr class="hit"><td class="num">13</td><td>记得取快递</td><td>生活琐事</td><td>其他 <span class="tag bad">✗</span></td><td class="num">0.20</td><td><strong>生活琐事</strong> <span class="tag ok">✓</span></td><td class="num">0.82</td></tr>
+  <tr class="hit"><td class="num">14</td><td>周末去哪玩，你定</td><td>约时间安排</td><td>征求意见 <span class="tag bad">✗</span></td><td class="num">0.36</td><td><strong>约时间安排</strong> <span class="tag ok">✓</span></td><td class="num">0.67</td></tr>
+  <tr class="miss"><td class="num">15</td><td>看了个超好笑的视频</td><td>分享内容</td><td>分享内容 <span class="tag ok">✓</span></td><td class="num">0.52</td><td><strong>闲聊分享</strong> <span class="tag bad">✗</span></td><td class="num">0.55</td></tr>
+  <tr class="hit"><td class="num">16</td><td>我感冒了，难受</td><td>撒娇讨关注</td><td>其他 <span class="tag bad">✗</span></td><td class="num">0.20</td><td><strong>撒娇讨关注</strong> <span class="tag ok">✓</span></td><td class="num">0.50</td></tr>
+  <tr class="hit"><td class="num">17</td><td>那家店你去过没</td><td>提问求助</td><td>提问求助 <span class="tag ok">✓</span></td><td class="num">0.26</td><td><strong>提问求助</strong> <span class="tag ok">✓</span></td><td class="num">0.22</td></tr>
+  <tr class="hit"><td class="num">18</td><td>[微信红包] 恭喜发财</td><td>红包转账</td><td>红包转账 <span class="tag ok">✓</span></td><td class="num">0.57</td><td><strong>红包转账</strong> <span class="tag ok">✓</span></td><td class="num">0.66</td></tr>
+  <tr class="total"><td colspan="3">命中合计</td><td colspan="2" style="text-align:center">7/18（38.9%）</td><td colspan="2" style="text-align:center">15/18（83.3%）</td></tr>
+</table>
+<p class="src">判定口径：答案 == 金牌答案（严格字符串匹配）。✗① ② ③ 对应第二章错例编号。</p>
+
+<h2>五、送入模型的指令（最终发送版，含出处）</h2>
+
+<h3>5.1 请求结构（watcher.py:149 <code>call_kev</code>）</h3>
+<p>每条消息发一次 POST，body 三字段；三问在服务端拼成一条 token 序列一次前向。state 模板（watcher.py:663 <code>emit</code>）：</p>
+<pre class="small">微信新消息
+来自：{发送者或群名}
+内容：{通知正文}</pre>
+
+<h3>5.2 通用版 questions 全文</h3>
+<p class="src">出处：<code>config.json:55</code>（intent :56 / urgency :75 / need_reply :84），即 <code>questions</code> 字段原文。</p>
+<pre class="small">{
+ "intent": {
+  "type": "choice",
+  "instructions": "这条微信消息最核心的意图是什么？先看有没有需要我做的事或等我回答的问题，再细分：问我看法的选「征求意见」，问信息、求帮忙或要我接话的选「提问求助」，与时间有关的选「约时间安排」。能归入某类时不要选「其他」。",
+  "criteria": {
+   "问候寒暄": "打招呼、问候、早安晚安、报平安",
+   "闲聊分享": "分享日常、见闻、心情、吐槽，不指望我具体回应",
+   "提问求助": "向我问信息、请我帮忙；「你在忙吗」「中午吃什么」这类要我接话的问句也归这里（问看法、评价、建议的归「征求意见」）",
+   "征求意见": "问我的看法、评价或建议（「你觉得…」「…怎么样」「行不行」）",
+   "约时间安排": "约见面、问我有没有空、定时间或改时间",
+   "事务通知": "告知我某件事、进度或状态，一般不用回",
+   "工作交代": "工作上布置任务、交代事项；工作场景里转达要我办的事（如「王总让你…」）",
+   "催办紧急": "催促、强调紧急、要我尽快或马上处理",
+   "发文件链接": "发来文件、资料、链接让我处理或查看",
+   "分享内容": "转发文章、视频、音乐等内容给我看",
+   "红包转账": "红包、转账、收款相关的消息",
+   "表达情感": "关心、想念、感谢、道歉等情感表达",
+   "其他": "无法归入以上任何一类"
+  }
+ },
+ "urgency": {
+  "type": "score",
+  "instructions": "这条消息要我多快回应？请严格按紧迫程度打分。",
+  "criteria": [
+   "完全不用急：闲聊、分享类，看到也不用特地回",
+   "有空回一下：常规事项，今天内回复就行",
+   "尽快处理：对方在等结果、有事相求或催办，最好马上回"
+  ]
+ },
+ "need_reply": {
+  "type": "noul",
+  "instructions": "对方是否在等着我回复？",
+  "criteria": {
+   "false": "不是，对方只是告知或分享，不回复也可以",
+   "true": "是，对方在等我的回应"
+  }
+ }
+}</pre>
+
+<h3>5.3 专用版 questions（覆盖合并后的最终形态）</h3>
+<p>评测对每条消息同时跑通用版与本版。合并规则（watcher.py:127 <code>questions_for_chat</code>）：会话名包含「爱人」→
+按题<strong>浅合并</strong>：<code>intent</code> 整题替换、<code>urgency</code> 仅替换 <code>criteria</code>（instructions 继承通用版）、
+<code>need_reply</code> 不覆盖（与通用版相同）。</p>
+<p class="src">出处：补丁 = <code>config.json:24</code> 的 <code>chat_overrides["爱人"]</code>（intent :26 / urgency :44）；下列即实际发送的合并结果。</p>
+<pre class="small">{
+ "intent": {
+  "type": "choice",
+  "instructions": "这是我爱人发来的消息。先判断她是不是在要我的关注或回应（撒娇、情感、情绪、催问），再归具体类别。「其他」只在真的无法归类时使用。",
+  "criteria": {
+   "撒娇讨关注": "撒娇、卖萌、讨哄求关注（「哼」「在干嘛」「不理你了」）；说难受、好累、想被关心也算",
+   "情感表达": "爱你、想你、感谢、道歉这类直白的情感话（「爱你」「想你了」）",
+   "闲聊分享": "分享日常、见闻、好玩的事、吐槽（「刚看到一只猫」）",
+   "提问求助": "问我信息、请我帮忙、要我拿主意（「你去过没」「中午吃什么」）；跟约会相关的商量归「约时间安排」",
+   "征求意见": "问我的看法、评价（「你觉得…」「…怎么样」）",
+   "约时间安排": "约会见面、问有没有空、定或改时间；商量约会去哪玩、做什么也算这里",
+   "生活琐事": "家里的事要我办或问我办了没（买东西、快递、接送）",
+   "情绪不满": "生气、委屈、抱怨、暗示我做得不好（「你怎么才回我」「你是不是忘了」）",
+   "催问回复": "催我回话或问我怎么还没回（「你怎么还不回我」「人呢」）",
+   "分享内容": "转发文章、视频、音乐、链接给我",
+   "红包转账": "红包、转账、收款有关的消息",
+   "事务告知": "告知我她的行程、状态、安排（「刚到家」「我加班」）",
+   "其他": "无法归入以上任何一类"
+  }
+ },
+ "urgency": {
+  "type": "score",
+  "instructions": "这条消息要我多快回应？请严格按紧迫程度打分。",
+  "criteria": [
+   "看完就好：撒娇、分享、随口说说，不用专门回",
+   "看到回一下：日常闲聊，不急",
+   "今天内回：在商量事、等我表态或回答问题",
+   "尽快回：催问、等结果，或明显带情绪（不高兴、着急）",
+   "马上回：生气、委屈或急事，得立刻回应"
+  ]
+ },
+ "need_reply": {
+  "type": "noul",
+  "instructions": "对方是否在等着我回复？",
+  "criteria": {
+   "false": "不是，对方只是告知或分享，不回复也可以",
+   "true": "是，对方在等我的回应"
+  }
+ }
+}</pre>
+
+<h3>5.4 出处速查</h3>
+<table>
+  <tr><th>内容</th><th>文件:行号</th></tr>
+  <tr><td>通用问题集原文</td><td><code>config.json:55-92</code>（questions）</td></tr>
+  <tr><td>专用补丁原文</td><td><code>config.json:24-53</code>（chat_overrides["爱人"]）</td></tr>
+  <tr><td>合并逻辑（浅合并/包含匹配/首命中）</td><td><code>watcher.py:127</code> questions_for_chat</td></tr>
+  <tr><td>HTTP 请求构造</td><td><code>watcher.py:149</code> call_kev</td></tr>
+  <tr><td>state 三行模板</td><td><code>watcher.py:663</code> NotificationReader.emit</td></tr>
+  <tr><td>响应后处理</td><td><code>watcher.py:353</code> shape_result</td></tr>
+</table>
+
+<h2>六、原始评测数据（完整 JSON，含两版全部原始输出）</h2>
+<p>结构：<code>rows[i].generic.raw / partner.raw</code> = 模型对三个问题的直接回答（含 probabilities）。
+展开查看全部 18 条 × 2 版本：</p>
+<details><summary>展开 eval_partner_results_v2.json（57 KB）</summary>
+<pre>{
+ "chat": "爱人",
+ "ts": "2026-10-06T09:40:37+08:00",
+ "model": {
+  "url": "http://127.0.0.1:8009/v1/systemone",
+  "model": "kev-latest"
+ },
+ "total": 18,
+ "hit_partner": 15,
+ "hit_generic": 7,
+ "elapsed_s": 53.7,
+ "rows": [
+  {
+   "text": "爱你",
+   "gold": "情感表达",
+   "generic": {
+    "raw": {
+     "intent": {
+      "type": "choice",
+      "choice": "表达情感",
+      "confidence": 0.6879,
+      "probabilities": {
+       "问候寒暄": 0.0266,
+       "闲聊分享": 0.0629,
+       "提问求助": 0.0191,
+       "征求意见": 0.0035,
+       "约时间安排": 0.0014,
+       "事务通知": 0.0268,
+       "工作交代": 0.0025,
+       "催办紧急": 0.0012,
+       "发文件链接": 0.0017,
+       "分享内容": 0.0047,
+       "红包转账": 0.0026,
+       "表达情感": 0.7119,
+       "其他": 0.1352
+      }
+     },
+     "urgency": {
+      "type": "score",
+      "score": 0.7645,
+      "legend": {
+       "0": "完全不用急：闲聊、分享类，看到也不用特地回",
+       "1": "有空回一下：常规事项，今天内回复就行",
+       "2": "尽快处理：对方在等结果、有事相求或催办，最好马上回"
+      },
+      "probabilities": {
+       "0": 0.3435,
+       "1": 0.5485,
+       "2": 0.108
+      },
+      "confidence": 0.3227
+     },
+     "need_reply": {
+      "type": "noul",
+      "noul": 0.7287
+     }
+    },
+    "intent": {
+     "value": "表达情感",
+     "confidence": 0.6879
+    }
+   },
+   "partner": {
+    "raw": {
+     "intent": {
+      "type": "choice",
+      "choice": "情感表达",
+      "confidence": 0.9181,
+      "probabilities": {
+       "撒娇讨关注": 0.0099,
+       "情感表达": 0.9244,
+       "闲聊分享": 0.0075,
+       "提问求助": 0.0053,
+       "征求意见": 0.0017,
+       "约时间安排": 0.0018,
+       "生活琐事": 0.0024,
+       "情绪不满": 0.0031,
+       "催问回复": 0.0054,
+       "分享内容": 0.0022,
+       "红包转账": 0.0014,
+       "事务告知": 0.0058,
+       "其他": 0.0291
+      }
+     },
+     "urgency": {
+      "type": "score",
+      "score": 1.317,
+      "legend": {
+       "0": "看完就好：撒娇、分享、随口说说，不用专门回",
+       "1": "看到回一下：日常闲聊，不急",
+       "2": "今天内回：在商量事、等我表态或回答问题",
+       "3": "尽快回：催问、等结果，或明显带情绪（不高兴、着急）",
+       "4": "马上回：生气、委屈或急事，得立刻回应"
+      },
+      "probabilities": {
+       "0": 0.284,
+       "1": 0.3672,
+       "2": 0.164,
+       "3": 0.1172,
+       "4": 0.0675
+      },
+      "confidence": 0.2624
+     },
+     "need_reply": {
+      "type": "noul",
+      "noul": 0.7287
+     }
+    },
+    "intent": {
+     "value": "情感表达",
+     "confidence": 0.9181
+    }
+   },
+   "hit_partner": true,
+   "hit_generic": false
+  },
+  {
+   "text": "想你了",
+   "gold": "情感表达",
+   "generic": {
+    "raw": {
+     "intent": {
+      "type": "choice",
+      "choice": "表达情感",
+      "confidence": 0.8194,
+      "probabilities": {
+       "问候寒暄": 0.0236,
+       "闲聊分享": 0.0397,
+       "提问求助": 0.0164,
+       "征求意见": 0.0022,
+       "约时间安排": 0.0016,
+       "事务通知": 0.012,
+       "工作交代": 0.0012,
+       "催办紧急": 0.0008,
+       "发文件链接": 0.0008,
+       "分享内容": 0.0021,
+       "红包转账": 0.0009,
+       "表达情感": 0.8333,
+       "其他": 0.0654
+      }
+     },
+     "urgency": {
+      "type": "score",
+      "score": 0.7944,
+      "legend": {
+       "0": "完全不用急：闲聊、分享类，看到也不用特地回",
+       "1": "有空回一下：常规事项，今天内回复就行",
+       "2": "尽快处理：对方在等结果、有事相求或催办，最好马上回"
+      },
+      "probabilities": {
+       "0": 0.2957,
+       "1": 0.6142,
+       "2": 0.0901
+      },
+      "confidence": 0.4213
+     },
+     "need_reply": {
+      "type": "noul",
+      "noul": 0.7364
+     }
+    },
+    "intent": {
+     "value": "表达情感",
+     "confidence": 0.8194
+    }
+   },
+   "partner": {
+    "raw": {
+     "intent": {
+      "type": "choice",
+      "choice": "情感表达",
+      "confidence": 0.8871,
+      "probabilities": {
+       "撒娇讨关注": 0.0239,
+       "情感表达": 0.8958,
+       "闲聊分享": 0.0086,
+       "提问求助": 0.006,
+       "征求意见": 0.0017,
+       "约时间安排": 0.0026,
+       "生活琐事": 0.0022,
+       "情绪不满": 0.0039,
+       "催问回复": 0.0061,
+       "分享内容": 0.0018,
+       "红包转账": 0.001,
+       "事务告知": 0.0076,
+       "其他": 0.0388
+      }
+     },
+     "urgency": {
+      "type": "score",
+      "score": 1.3044,
+      "legend": {
+       "0": "看完就好：撒娇、分享、随口说说，不用专门回",
+       "1": "看到回一下：日常闲聊，不急",
+       "2": "今天内回：在商量事、等我表态或回答问题",
+       "3": "尽快回：催问、等结果，或明显带情绪（不高兴、着急）",
+       "4": "马上回：生气、委屈或急事，得立刻回应"
+      },
+      "probabilities": {
+       "0": 0.2595,
+       "1": 0.4242,
+       "2": 0.1276,
+       "3": 0.1297,
+       "4": 0.059
+      },
+      "confidence": 0.3137
+     },
+     "need_reply": {
+      "type": "noul",
+      "noul": 0.7364
+     }
+    },
+    "intent": {
+     "value": "情感表达",
+     "confidence": 0.8871
+    }
+   },
+   "hit_partner": true,
+   "hit_generic": false
+  },
+  {
+   "text": "明晚有空吗",
+   "gold": "约时间安排",
+   "generic": {
+    "raw": {
+     "intent": {
+      "type": "choice",
+      "choice": "约时间安排",
+      "confidence": 0.8517,
+      "probabilities": {
+       "问候寒暄": 0.007,
+       "闲聊分享": 0.0149,
+       "提问求助": 0.0343,
+       "征求意见": 0.0092,
+       "约时间安排": 0.8631,
+       "事务通知": 0.0093,
+       "工作交代": 0.0033,
+       "催办紧急": 0.0014,
+       "发文件链接": 0.0007,
+       "分享内容": 0.0015,
+       "红包转账": 0.0008,
+       "表达情感": 0.0138,
+       "其他": 0.0408
+      }
+     },
+     "urgency": {
+      "type": "score",
+      "score": 0.8655,
+      "legend": {
+       "0": "完全不用急：闲聊、分享类，看到也不用特地回",
+       "1": "有空回一下：常规事项，今天内回复就行",
+       "2": "尽快处理：对方在等结果、有事相求或催办，最好马上回"
+      },
+      "probabilities": {
+       "0": 0.2775,
+       "1": 0.5795,
+       "2": 0.143
+      },
+      "confidence": 0.3693
+     },
+     "need_reply": {
+      "type": "noul",
+      "noul": 0.9049
+     }
+    },
+    "intent": {
+     "value": "约时间安排",
+     "confidence": 0.8517
+    }
+   },
+   "partner": {
+    "raw": {
+     "intent": {
+      "type": "choice",
+      "choice": "约时间安排",
+      "confidence": 0.4662,
+      "probabilities": {
+       "撒娇讨关注": 0.0045,
+       "情感表达": 0.0024,
+       "闲聊分享": 0.0047,
+       "提问求助": 0.4318,
+       "征求意见": 0.0042,
+       "约时间安排": 0.5072,
+       "生活琐事": 0.0037,
+       "情绪不满": 0.0024,
+       "催问回复": 0.0038,
+       "分享内容": 0.0014,
+       "红包转账": 0.0007,
+       "事务告知": 0.0066,
+       "其他": 0.0266
+      }
+     },
+     "urgency": {
+      "type": "score",
+      "score": 1.3942,
+      "legend": {
+       "0": "看完就好：撒娇、分享、随口说说，不用专门回",
+       "1": "看到回一下：日常闲聊，不急",
+       "2": "今天内回：在商量事、等我表态或回答问题",
+       "3": "尽快回：催问、等结果，或明显带情绪（不高兴、着急）",
+       "4": "马上回：生气、委屈或急事，得立刻回应"
+      },
+      "probabilities": {
+       "0": 0.2051,
+       "1": 0.3494,
+       "2": 0.3212,
+       "3": 0.095,
+       "4": 0.0294
+      },
+      "confidence": 0.3297
+     },
+     "need_reply": {
+      "type": "noul",
+      "noul": 0.9049
+     }
+    },
+    "intent": {
+     "value": "约时间安排",
+     "confidence": 0.4662
+    }
+   },
+   "hit_partner": true,
+   "hit_generic": true
+  },
+  {
+   "text": "今晚有空吗",
+   "gold": "约时间安排",
+   "generic": {
+    "raw": {
+     "intent": {
+      "type": "choice",
+      "choice": "约时间安排",
+      "confidence": 0.8419,
+      "probabilities": {
+       "问候寒暄": 0.0093,
+       "闲聊分享": 0.0148,
+       "提问求助": 0.0373,
+       "征求意见": 0.0077,
+       "约时间安排": 0.8541,
+       "事务通知": 0.0083,
+       "工作交代": 0.0033,
+       "催办紧急": 0.0018,
+       "发文件链接": 0.0008,
+       "分享内容": 0.0017,
+       "红包转账": 0.0008,
+       "表达情感": 0.0172,
+       "其他": 0.0428
+      }
+     },
+     "urgency": {
+      "type": "score",
+      "score": 0.8713,
+      "legend": {
+       "0": "完全不用急：闲聊、分享类，看到也不用特地回",
+       "1": "有空回一下：常规事项，今天内回复就行",
+       "2": "尽快处理：对方在等结果、有事相求或催办，最好马上回"
+      },
+      "probabilities": {
+       "0": 0.2433,
+       "1": 0.6421,
+       "2": 0.1146
+      },
+      "confidence": 0.4632
+     },
+     "need_reply": {
+      "type": "noul",
+      "noul": 0.899
+     }
+    },
+    "intent": {
+     "value": "约时间安排",
+     "confidence": 0.8419
+    }
+   },
+   "partner": {
+    "raw": {
+     "intent": {
+      "type": "choice",
+      "choice": "约时间安排",
+      "confidence": 0.5572,
+      "probabilities": {
+       "撒娇讨关注": 0.0063,
+       "情感表达": 0.003,
+       "闲聊分享": 0.0053,
+       "提问求助": 0.3353,
+       "征求意见": 0.0042,
+       "约时间安排": 0.5912,
+       "生活琐事": 0.0043,
+       "情绪不满": 0.0032,
+       "催问回复": 0.0049,
+       "分享内容": 0.0015,
+       "红包转账": 0.0008,
+       "事务告知": 0.0079,
+       "其他": 0.0321
+      }
+     },
+     "urgency": {
+      "type": "score",
+      "score": 1.4296,
+      "legend": {
+       "0": "看完就好：撒娇、分享、随口说说，不用专门回",
+       "1": "看到回一下：日常闲聊，不急",
+       "2": "今天内回：在商量事、等我表态或回答问题",
+       "3": "尽快回：催问、等结果，或明显带情绪（不高兴、着急）",
+       "4": "马上回：生气、委屈或急事，得立刻回应"
+      },
+      "probabilities": {
+       "0": 0.1869,
+       "1": 0.3381,
+       "2": 0.3651,
+       "3": 0.0785,
+       "4": 0.0315
+      },
+      "confidence": 0.289
+     },
+     "need_reply": {
+      "type": "noul",
+      "noul": 0.8995
+     }
+    },
+    "intent": {
+     "value": "约时间安排",
+     "confidence": 0.5572
+    }
+   },
+   "hit_partner": true,
+   "hit_generic": true
+  },
+  {
+   "text": "你觉得牛蛙好吃吗",
+   "gold": "征求意见",
+   "generic": {
+    "raw": {
+     "intent": {
+      "type": "choice",
+      "choice": "征求意见",
+      "confidence": 0.8292,
+      "probabilities": {
+       "问候寒暄": 0.003,
+       "闲聊分享": 0.0197,
+       "提问求助": 0.0962,
+       "征求意见": 0.8424,
+       "约时间安排": 0.0006,
+       "事务通知": 0.0036,
+       "工作交代": 0.001,
+       "催办紧急": 0.0004,
+       "发文件链接": 0.0008,
+       "分享内容": 0.0023,
+       "红包转账": 0.0006,
+       "表达情感": 0.0061,
+       "其他": 0.0234
+      }
+     },
+     "urgency": {
+      "type": "score",
+      "score": 0.702,
+      "legend": {
+       "0": "完全不用急：闲聊、分享类，看到也不用特地回",
+       "1": "有空回一下：常规事项，今天内回复就行",
+       "2": "尽快处理：对方在等结果、有事相求或催办，最好马上回"
+      },
+      "probabilities": {
+       "0": 0.3853,
+       "1": 0.5275,
+       "2": 0.0873
+      },
+      "confidence": 0.2912
+     },
+     "need_reply": {
+      "type": "noul",
+      "noul": 0.6568
+     }
+    },
+    "intent": {
+     "value": "征求意见",
+     "confidence": 0.8292
+    }
+   },
+   "partner": {
+    "raw": {
+     "intent": {
+      "type": "choice",
+      "choice": "征求意见",
+      "confidence": 0.8457,
+      "probabilities": {
+       "撒娇讨关注": 0.0076,
+       "情感表达": 0.0031,
+       "闲聊分享": 0.0361,
+       "提问求助": 0.0241,
+       "征求意见": 0.8576,
+       "约时间安排": 0.0059,
+       "生活琐事": 0.0074,
+       "情绪不满": 0.0024,
+       "催问回复": 0.0034,
+       "分享内容": 0.0032,
+       "红包转账": 0.0007,
+       "事务告知": 0.0054,
+       "其他": 0.0429
+      }
+     },
+     "urgency": {
+      "type": "score",
+      "score": 1.2677,
+      "legend": {
+       "0": "看完就好：撒娇、分享、随口说说，不用专门回",
+       "1": "看到回一下：日常闲聊，不急",
+       "2": "今天内回：在商量事、等我表态或回答问题",
+       "3": "尽快回：催问、等结果，或明显带情绪（不高兴、着急）",
+       "4": "马上回：生气、委屈或急事，得立刻回应"
+      },
+      "probabilities": {
+       "0": 0.2211,
+       "1": 0.4123,
+       "2": 0.2693,
+       "3": 0.0722,
+       "4": 0.0251
+      },
+      "confidence": 0.4084
+     },
+     "need_reply": {
+      "type": "noul",
+      "noul": 0.6568
+     }
+    },
+    "intent": {
+     "value": "征求意见",
+     "confidence": 0.8457
+    }
+   },
+   "hit_partner": true,
+   "hit_generic": true
+  },
+  {
+   "text": "你怎么才回我",
+   "gold": "情绪不满",
+   "generic": {
+    "raw": {
+     "intent": {
+      "type": "choice",
+      "choice": "其他",
+      "confidence": 0.3394,
+      "probabilities": {
+       "问候寒暄": 0.0306,
+       "闲聊分享": 0.0808,
+       "提问求助": 0.1537,
+       "征求意见": 0.047,
+       "约时间安排": 0.0084,
+       "事务通知": 0.0309,
+       "工作交代": 0.009,
+       "催办紧急": 0.1457,
+       "发文件链接": 0.004,
+       "分享内容": 0.0067,
+       "红包转账": 0.0035,
+       "表达情感": 0.0896,
+       "其他": 0.3902
+      }
+     },
+     "urgency": {
+      "type": "score",
+      "score": 0.9623,
+      "legend": {
+       "0": "完全不用急：闲聊、分享类，看到也不用特地回",
+       "1": "有空回一下：常规事项，今天内回复就行",
+       "2": "尽快处理：对方在等结果、有事相求或催办，最好马上回"
+      },
+      "probabilities": {
+       "0": 0.2529,
+       "1": 0.5319,
+       "2": 0.2152
+      },
+      "confidence": 0.2979
+     },
+     "need_reply": {
+      "type": "noul",
+      "noul": 0.8205
+     }
+    },
+    "intent": {
+     "value": "其他",
+     "confidence": 0.3394
+    }
+   },
+   "partner": {
+    "raw": {
+     "intent": {
+      "type": "choice",
+      "choice": "催问回复",
+      "confidence": 0.5926,
+      "probabilities": {
+       "撒娇讨关注": 0.0229,
+       "情感表达": 0.0038,
+       "闲聊分享": 0.0054,
+       "提问求助": 0.0155,
+       "征求意见": 0.0084,
+       "约时间安排": 0.0029,
+       "生活琐事": 0.006,
+       "情绪不满": 0.2287,
+       "催问回复": 0.6239,
+       "分享内容": 0.0025,
+       "红包转账": 0.0012,
+       "事务告知": 0.0127,
+       "其他": 0.0662
+      }
+     },
+     "urgency": {
+      "type": "score",
+      "score": 2.004,
+      "legend": {
+       "0": "看完就好：撒娇、分享、随口说说，不用专门回",
+       "1": "看到回一下：日常闲聊，不急",
+       "2": "今天内回：在商量事、等我表态或回答问题",
+       "3": "尽快回：催问、等结果，或明显带情绪（不高兴、着急）",
+       "4": "马上回：生气、委屈或急事，得立刻回应"
+      },
+      "probabilities": {
+       "0": 0.1468,
+       "1": 0.2999,
+       "2": 0.1062,
+       "3": 0.2971,
+       "4": 0.1502
+      },
+      "confidence": 0.0
+     },
+     "need_reply": {
+      "type": "noul",
+      "noul": 0.8205
+     }
+    },
+    "intent": {
+     "value": "催问回复",
+     "confidence": 0.5926
+    }
+   },
+   "hit_partner": false,
+   "hit_generic": false
+  },
+  {
+   "text": "刚到家",
+   "gold": "事务告知",
+   "generic": {
+    "raw": {
+     "intent": {
+      "type": "choice",
+      "choice": "问候寒暄",
+      "confidence": 0.3166,
+      "probabilities": {
+       "问候寒暄": 0.3692,
+       "闲聊分享": 0.1517,
+       "提问求助": 0.0353,
+       "征求意见": 0.0039,
+       "约时间安排": 0.0032,
+       "事务通知": 0.2183,
+       "工作交代": 0.006,
+       "催办紧急": 0.0026,
+       "发文件链接": 0.0025,
+       "分享内容": 0.0056,
+       "红包转账": 0.0017,
+       "表达情感": 0.0579,
+       "其他": 0.1422
+      }
+     },
+     "urgency": {
+      "type": "score",
+      "score": 0.6288,
+      "legend": {
+       "0": "完全不用急：闲聊、分享类，看到也不用特地回",
+       "1": "有空回一下：常规事项，今天内回复就行",
+       "2": "尽快处理：对方在等结果、有事相求或催办，最好马上回"
+      },
+      "probabilities": {
+       "0": 0.4409,
+       "1": 0.4894,
+       "2": 0.0697
+      },
+      "confidence": 0.2342
+     },
+     "need_reply": {
+      "type": "noul",
+      "noul": 0.448
+     }
+    },
+    "intent": {
+     "value": "问候寒暄",
+     "confidence": 0.3166
+    }
+   },
+   "partner": {
+    "raw": {
+     "intent": {
+      "type": "choice",
+      "choice": "事务告知",
+      "confidence": 0.7925,
+      "probabilities": {
+       "撒娇讨关注": 0.0139,
+       "情感表达": 0.007,
+       "闲聊分享": 0.0696,
+       "提问求助": 0.0095,
+       "征求意见": 0.0027,
+       "约时间安排": 0.0023,
+       "生活琐事": 0.0131,
+       "情绪不满": 0.0043,
+       "催问回复": 0.0064,
+       "分享内容": 0.0023,
+       "红包转账": 0.001,
+       "事务告知": 0.8084,
+       "其他": 0.0596
+      }
+     },
+     "urgency": {
+      "type": "score",
+      "score": 1.0858,
+      "legend": {
+       "0": "看完就好：撒娇、分享、随口说说，不用专门回",
+       "1": "看到回一下：日常闲聊，不急",
+       "2": "今天内回：在商量事、等我表态或回答问题",
+       "3": "尽快回：催问、等结果，或明显带情绪（不高兴、着急）",
+       "4": "马上回：生气、委屈或急事，得立刻回应"
+      },
+      "probabilities": {
+       "0": 0.3348,
+       "1": 0.4485,
+       "2": 0.0694,
+       "3": 0.0905,
+       "4": 0.0567
+      },
+      "confidence": 0.3705
+     },
+     "need_reply": {
+      "type": "noul",
+      "noul": 0.4458
+     }
+    },
+    "intent": {
+     "value": "事务告知",
+     "confidence": 0.7925
+    }
+   },
+   "hit_partner": true,
+   "hit_generic": false
+  },
+  {
+   "text": "晚上吃什么",
+   "gold": "提问求助",
+   "generic": {
+    "raw": {
+     "intent": {
+      "type": "choice",
+      "choice": "提问求助",
+      "confidence": 0.3215,
+      "probabilities": {
+       "问候寒暄": 0.0162,
+       "闲聊分享": 0.0374,
+       "提问求助": 0.3737,
+       "征求意见": 0.3133,
+       "约时间安排": 0.0152,
+       "事务通知": 0.0197,
+       "工作交代": 0.005,
+       "催办紧急": 0.0026,
+       "发文件链接": 0.0011,
+       "分享内容": 0.0021,
+       "红包转账": 0.0011,
+       "表达情感": 0.0279,
+       "其他": 0.1848
+      }
+     },
+     "urgency": {
+      "type": "score",
+      "score": 1.0844,
+      "legend": {
+       "0": "完全不用急：闲聊、分享类，看到也不用特地回",
+       "1": "有空回一下：常规事项，今天内回复就行",
+       "2": "尽快处理：对方在等结果、有事相求或催办，最好马上回"
+      },
+      "probabilities": {
+       "0": 0.2277,
+       "1": 0.4601,
+       "2": 0.3122
+      },
+      "confidence": 0.1902
+     },
+     "need_reply": {
+      "type": "noul",
+      "noul": 0.9137
+     }
+    },
+    "intent": {
+     "value": "提问求助",
+     "confidence": 0.3215
+    }
+   },
+   "partner": {
+    "raw": {
+     "intent": {
+      "type": "choice",
+      "choice": "其他",
+      "confidence": 0.1868,
+      "probabilities": {
+       "撒娇讨关注": 0.0299,
+       "情感表达": 0.0095,
+       "闲聊分享": 0.0465,
+       "提问求助": 0.2459,
+       "征求意见": 0.1663,
+       "约时间安排": 0.1079,
+       "生活琐事": 0.0901,
+       "情绪不满": 0.0085,
+       "催问回复": 0.01,
+       "分享内容": 0.0039,
+       "红包转账": 0.0017,
+       "事务告知": 0.0303,
+       "其他": 0.2494
+      }
+     },
+     "urgency": {
+      "type": "score",
+      "score": 1.636,
+      "legend": {
+       "0": "看完就好：撒娇、分享、随口说说，不用专门回",
+       "1": "看到回一下：日常闲聊，不急",
+       "2": "今天内回：在商量事、等我表态或回答问题",
+       "3": "尽快回：催问、等结果，或明显带情绪（不高兴、着急）",
+       "4": "马上回：生气、委屈或急事，得立刻回应"
+      },
+      "probabilities": {
+       "0": 0.1468,
+       "1": 0.27,
+       "2": 0.4182,
+       "3": 0.1305,
+       "4": 0.0345
+      },
+      "confidence": 0.3641
+     },
+     "need_reply": {
+      "type": "noul",
+      "noul": 0.9137
+     }
+    },
+    "intent": {
+     "value": "其他",
+     "confidence": 0.1868
+    }
+   },
+   "hit_partner": false,
+   "hit_generic": true
+  },
+  {
+   "text": "哼",
+   "gold": "撒娇讨关注",
+   "generic": {
+    "raw": {
+     "intent": {
+      "type": "choice",
+      "choice": "闲聊分享",
+      "confidence": 0.3099,
+      "probabilities": {
+       "问候寒暄": 0.0491,
+       "闲聊分享": 0.363,
+       "提问求助": 0.0775,
+       "征求意见": 0.05,
+       "约时间安排": 0.0044,
+       "事务通知": 0.0556,
+       "工作交代": 0.0077,
+       "催办紧急": 0.008,
+       "发文件链接": 0.0055,
+       "分享内容": 0.0169,
+       "红包转账": 0.0047,
+       "表达情感": 0.096,
+       "其他": 0.2615
+      }
+     },
+     "urgency": {
+      "type": "score",
+      "score": 0.5667,
+      "legend": {
+       "0": "完全不用急：闲聊、分享类，看到也不用特地回",
+       "1": "有空回一下：常规事项，今天内回复就行",
+       "2": "尽快处理：对方在等结果、有事相求或催办，最好马上回"
+      },
+      "probabilities": {
+       "0": 0.4914,
+       "1": 0.4506,
+       "2": 0.0581
+      },
+      "confidence": 0.15
+     },
+     "need_reply": {
+      "type": "noul",
+      "noul": 0.6469
+     }
+    },
+    "intent": {
+     "value": "闲聊分享",
+     "confidence": 0.3099
+    }
+   },
+   "partner": {
+    "raw": {
+     "intent": {
+      "type": "choice",
+      "choice": "撒娇讨关注",
+      "confidence": 0.3604,
+      "probabilities": {
+       "撒娇讨关注": 0.4096,
+       "情感表达": 0.0133,
+       "闲聊分享": 0.028,
+       "提问求助": 0.0199,
+       "征求意见": 0.0177,
+       "约时间安排": 0.006,
+       "生活琐事": 0.0095,
+       "情绪不满": 0.1478,
+       "催问回复": 0.0914,
+       "分享内容": 0.0075,
+       "红包转账": 0.0034,
+       "事务告知": 0.0387,
+       "其他": 0.2072
+      }
+     },
+     "urgency": {
+      "type": "score",
+      "score": 1.6882,
+      "legend": {
+       "0": "看完就好：撒娇、分享、随口说说，不用专门回",
+       "1": "看到回一下：日常闲聊，不急",
+       "2": "今天内回：在商量事、等我表态或回答问题",
+       "3": "尽快回：催问、等结果，或明显带情绪（不高兴、着急）",
+       "4": "马上回：生气、委屈或急事，得立刻回应"
+      },
+      "probabilities": {
+       "0": 0.2572,
+       "1": 0.3042,
+       "2": 0.0602,
+       "3": 0.2497,
+       "4": 0.1286
+      },
+      "confidence": 0.0
+     },
+     "need_reply": {
+      "type": "noul",
+      "noul": 0.6469
+     }
+    },
+    "intent": {
+     "value": "撒娇讨关注",
+     "confidence": 0.3604
+    }
+   },
+   "hit_partner": true,
+   "hit_generic": false
+  },
+  {
+   "text": "你是不是忘了答应我的事",
+   "gold": "情绪不满",
+   "generic": {
+    "raw": {
+     "intent": {
+      "type": "choice",
+      "choice": "其他",
+      "confidence": 0.3328,
+      "probabilities": {
+       "问候寒暄": 0.0121,
+       "闲聊分享": 0.0715,
+       "提问求助": 0.1982,
+       "征求意见": 0.0456,
+       "约时间安排": 0.0212,
+       "事务通知": 0.0347,
+       "工作交代": 0.0233,
+       "催办紧急": 0.1021,
+       "发文件链接": 0.0045,
+       "分享内容": 0.0054,
+       "红包转账": 0.0031,
+       "表达情感": 0.0942,
+       "其他": 0.3841
+      }
+     },
+     "urgency": {
+      "type": "score",
+      "score": 1.1735,
+      "legend": {
+       "0": "完全不用急：闲聊、分享类，看到也不用特地回",
+       "1": "有空回一下：常规事项，今天内回复就行",
+       "2": "尽快处理：对方在等结果、有事相求或催办，最好马上回"
+      },
+      "probabilities": {
+       "0": 0.1743,
+       "1": 0.4778,
+       "2": 0.3479
+      },
+      "confidence": 0.2167
+     },
+     "need_reply": {
+      "type": "noul",
+      "noul": 0.8875
+     }
+    },
+    "intent": {
+     "value": "其他",
+     "confidence": 0.3328
+    }
+   },
+   "partner": {
+    "raw": {
+     "intent": {
+      "type": "choice",
+      "choice": "情绪不满",
+      "confidence": 0.3877,
+      "probabilities": {
+       "撒娇讨关注": 0.0504,
+       "情感表达": 0.013,
+       "闲聊分享": 0.0151,
+       "提问求助": 0.0669,
+       "征求意见": 0.0245,
+       "约时间安排": 0.0242,
+       "生活琐事": 0.0578,
+       "情绪不满": 0.4348,
+       "催问回复": 0.0552,
+       "分享内容": 0.004,
+       "红包转账": 0.0018,
+       "事务告知": 0.0212,
+       "其他": 0.231
+      }
+     },
+     "urgency": {
+      "type": "score",
+      "score": 2.0695,
+      "legend": {
+       "0": "看完就好：撒娇、分享、随口说说，不用专门回",
+       "1": "看到回一下：日常闲聊，不急",
+       "2": "今天内回：在商量事、等我表态或回答问题",
+       "3": "尽快回：催问、等结果，或明显带情绪（不高兴、着急）",
+       "4": "马上回：生气、委屈或急事，得立刻回应"
+      },
+      "probabilities": {
+       "0": 0.1244,
+       "1": 0.2085,
+       "2": 0.2805,
+       "3": 0.2466,
+       "4": 0.1401
+      },
+      "confidence": 0.18
+     },
+     "need_reply": {
+      "type": "noul",
+      "noul": 0.8875
+     }
+    },
+    "intent": {
+     "value": "情绪不满",
+     "confidence": 0.3877
+    }
+   },
+   "hit_partner": true,
+   "hit_generic": false
+  },
+  {
+   "text": "买好了吗？明天要用的",
+   "gold": "生活琐事",
+   "generic": {
+    "raw": {
+     "intent": {
+      "type": "choice",
+      "choice": "提问求助",
+      "confidence": 0.2119,
+      "probabilities": {
+       "问候寒暄": 0.0173,
+       "闲聊分享": 0.0327,
+       "提问求助": 0.2726,
+       "征求意见": 0.0213,
+       "约时间安排": 0.0226,
+       "事务通知": 0.0653,
+       "工作交代": 0.0445,
+       "催办紧急": 0.2605,
+       "发文件链接": 0.0046,
+       "分享内容": 0.0022,
+       "红包转账": 0.0022,
+       "表达情感": 0.0314,
+       "其他": 0.2229
+      }
+     },
+     "urgency": {
+      "type": "score",
+      "score": 1.5192,
+      "legend": {
+       "0": "完全不用急：闲聊、分享类，看到也不用特地回",
+       "1": "有空回一下：常规事项，今天内回复就行",
+       "2": "尽快处理：对方在等结果、有事相求或催办，最好马上回"
+      },
+      "probabilities": {
+       "0": 0.0859,
+       "1": 0.3091,
+       "2": 0.605
+      },
+      "confidence": 0.2787
+     },
+     "need_reply": {
+      "type": "noul",
+      "noul": 0.9547
+     }
+    },
+    "intent": {
+     "value": "提问求助",
+     "confidence": 0.2119
+    }
+   },
+   "partner": {
+    "raw": {
+     "intent": {
+      "type": "choice",
+      "choice": "生活琐事",
+      "confidence": 0.5761,
+      "probabilities": {
+       "撒娇讨关注": 0.0132,
+       "情感表达": 0.0048,
+       "闲聊分享": 0.0135,
+       "提问求助": 0.0796,
+       "征求意见": 0.0127,
+       "约时间安排": 0.0222,
+       "生活琐事": 0.6087,
+       "情绪不满": 0.0231,
+       "催问回复": 0.0333,
+       "分享内容": 0.0027,
+       "红包转账": 0.0017,
+       "事务告知": 0.0274,
+       "其他": 0.157
+      }
+     },
+     "urgency": {
+      "type": "score",
+      "score": 2.4517,
+      "legend": {
+       "0": "看完就好：撒娇、分享、随口说说，不用专门回",
+       "1": "看到回一下：日常闲聊，不急",
+       "2": "今天内回：在商量事、等我表态或回答问题",
+       "3": "尽快回：催问、等结果，或明显带情绪（不高兴、着急）",
+       "4": "马上回：生气、委屈或急事，得立刻回应"
+      },
+      "probabilities": {
+       "0": 0.0827,
+       "1": 0.1195,
+       "2": 0.2359,
+       "3": 0.387,
+       "4": 0.1748
+      },
+      "confidence": 0.2517
+     },
+     "need_reply": {
+      "type": "noul",
+      "noul": 0.9547
+     }
+    },
+    "intent": {
+     "value": "生活琐事",
+     "confidence": 0.5761
+    }
+   },
+   "hit_partner": true,
+   "hit_generic": false
+  },
+  {
+   "text": "你怎么还不回我",
+   "gold": "催问回复",
+   "generic": {
+    "raw": {
+     "intent": {
+      "type": "choice",
+      "choice": "其他",
+      "confidence": 0.2711,
+      "probabilities": {
+       "问候寒暄": 0.0227,
+       "闲聊分享": 0.0542,
+       "提问求助": 0.1577,
+       "征求意见": 0.0321,
+       "约时间安排": 0.0101,
+       "事务通知": 0.025,
+       "工作交代": 0.0088,
+       "催办紧急": 0.2609,
+       "发文件链接": 0.0044,
+       "分享内容": 0.0066,
+       "红包转账": 0.0027,
+       "表达情感": 0.0877,
+       "其他": 0.3272
+      }
+     },
+     "urgency": {
+      "type": "score",
+      "score": 1.1872,
+      "legend": {
+       "0": "完全不用急：闲聊、分享类，看到也不用特地回",
+       "1": "有空回一下：常规事项，今天内回复就行",
+       "2": "尽快处理：对方在等结果、有事相求或催办，最好马上回"
+      },
+      "probabilities": {
+       "0": 0.1795,
+       "1": 0.4538,
+       "2": 0.3667
+      },
+      "confidence": 0.1807
+     },
+     "need_reply": {
+      "type": "noul",
+      "noul": 0.924
+     }
+    },
+    "intent": {
+     "value": "其他",
+     "confidence": 0.2711
+    }
+   },
+   "partner": {
+    "raw": {
+     "intent": {
+      "type": "choice",
+      "choice": "催问回复",
+      "confidence": 0.8411,
+      "probabilities": {
+       "撒娇讨关注": 0.0115,
+       "情感表达": 0.0018,
+       "闲聊分享": 0.002,
+       "提问求助": 0.0084,
+       "征求意见": 0.0037,
+       "约时间安排": 0.002,
+       "生活琐事": 0.0033,
+       "情绪不满": 0.0859,
+       "催问回复": 0.8533,
+       "分享内容": 0.0014,
+       "红包转账": 0.0006,
+       "事务告知": 0.0056,
+       "其他": 0.0208
+      }
+     },
+     "urgency": {
+      "type": "score",
+      "score": 2.3067,
+      "legend": {
+       "0": "看完就好：撒娇、分享、随口说说，不用专门回",
+       "1": "看到回一下：日常闲聊，不急",
+       "2": "今天内回：在商量事、等我表态或回答问题",
+       "3": "尽快回：催问、等结果，或明显带情绪（不高兴、着急）",
+       "4": "马上回：生气、委屈或急事，得立刻回应"
+      },
+      "probabilities": {
+       "0": 0.1022,
+       "1": 0.2129,
+       "2": 0.129,
+       "3": 0.388,
+       "4": 0.168
+      },
+      "confidence": 0.1423
+     },
+     "need_reply": {
+      "type": "noul",
+      "noul": 0.924
+     }
+    },
+    "intent": {
+     "value": "催问回复",
+     "confidence": 0.8411
+    }
+   },
+   "hit_partner": true,
+   "hit_generic": false
+  },
+  {
+   "text": "记得取快递",
+   "gold": "生活琐事",
+   "generic": {
+    "raw": {
+     "intent": {
+      "type": "choice",
+      "choice": "其他",
+      "confidence": 0.2006,
+      "probabilities": {
+       "问候寒暄": 0.0309,
+       "闲聊分享": 0.0717,
+       "提问求助": 0.2107,
+       "征求意见": 0.0102,
+       "约时间安排": 0.0223,
+       "事务通知": 0.2264,
+       "工作交代": 0.0638,
+       "催办紧急": 0.0385,
+       "发文件链接": 0.0074,
+       "分享内容": 0.0051,
+       "红包转账": 0.0016,
+       "表达情感": 0.0493,
+       "其他": 0.2621
+      }
+     },
+     "urgency": {
+      "type": "score",
+      "score": 1.1378,
+      "legend": {
+       "0": "完全不用急：闲聊、分享类，看到也不用特地回",
+       "1": "有空回一下：常规事项，今天内回复就行",
+       "2": "尽快处理：对方在等结果、有事相求或催办，最好马上回"
+      },
+      "probabilities": {
+       "0": 0.1661,
+       "1": 0.53,
+       "2": 0.3039
+      },
+      "confidence": 0.2949
+     },
+     "need_reply": {
+      "type": "noul",
+      "noul": 0.4871
+     }
+    },
+    "intent": {
+     "value": "其他",
+     "confidence": 0.2006
+    }
+   },
+   "partner": {
+    "raw": {
+     "intent": {
+      "type": "choice",
+      "choice": "生活琐事",
+      "confidence": 0.825,
+      "probabilities": {
+       "撒娇讨关注": 0.0076,
+       "情感表达": 0.0041,
+       "闲聊分享": 0.0185,
+       "提问求助": 0.033,
+       "征求意见": 0.0043,
+       "约时间安排": 0.0048,
+       "生活琐事": 0.8384,
+       "情绪不满": 0.0065,
+       "催问回复": 0.0052,
+       "分享内容": 0.0023,
+       "红包转账": 0.0006,
+       "事务告知": 0.0196,
+       "其他": 0.0551
+      }
+     },
+     "urgency": {
+      "type": "score",
+      "score": 1.5834,
+      "legend": {
+       "0": "看完就好：撒娇、分享、随口说说，不用专门回",
+       "1": "看到回一下：日常闲聊，不急",
+       "2": "今天内回：在商量事、等我表态或回答问题",
+       "3": "尽快回：催问、等结果，或明显带情绪（不高兴、着急）",
+       "4": "马上回：生气、委屈或急事，得立刻回应"
+      },
+      "probabilities": {
+       "0": 0.2361,
+       "1": 0.3133,
+       "2": 0.18,
+       "3": 0.1721,
+       "4": 0.0985
+      },
+      "confidence": 0.1203
+     },
+     "need_reply": {
+      "type": "noul",
+      "noul": 0.4871
+     }
+    },
+    "intent": {
+     "value": "生活琐事",
+     "confidence": 0.825
+    }
+   },
+   "hit_partner": true,
+   "hit_generic": false
+  },
+  {
+   "text": "周末去哪玩，你定",
+   "gold": "约时间安排",
+   "generic": {
+    "raw": {
+     "intent": {
+      "type": "choice",
+      "choice": "征求意见",
+      "confidence": 0.363,
+      "probabilities": {
+       "问候寒暄": 0.0104,
+       "闲聊分享": 0.0359,
+       "提问求助": 0.27,
+       "征求意见": 0.412,
+       "约时间安排": 0.0637,
+       "事务通知": 0.0113,
+       "工作交代": 0.0066,
+       "催办紧急": 0.0029,
+       "发文件链接": 0.0012,
+       "分享内容": 0.0028,
+       "红包转账": 0.0013,
+       "表达情感": 0.0244,
+       "其他": 0.1575
+      }
+     },
+     "urgency": {
+      "type": "score",
+      "score": 0.9465,
+      "legend": {
+       "0": "完全不用急：闲聊、分享类，看到也不用特地回",
+       "1": "有空回一下：常规事项，今天内回复就行",
+       "2": "尽快处理：对方在等结果、有事相求或催办，最好马上回"
+      },
+      "probabilities": {
+       "0": 0.2546,
+       "1": 0.5443,
+       "2": 0.2011
+      },
+      "confidence": 0.3164
+     },
+     "need_reply": {
+      "type": "noul",
+      "noul": 0.9336
+     }
+    },
+    "intent": {
+     "value": "征求意见",
+     "confidence": 0.363
+    }
+   },
+   "partner": {
+    "raw": {
+     "intent": {
+      "type": "choice",
+      "choice": "约时间安排",
+      "confidence": 0.6697,
+      "probabilities": {
+       "撒娇讨关注": 0.0071,
+       "情感表达": 0.0027,
+       "闲聊分享": 0.0091,
+       "提问求助": 0.1748,
+       "征求意见": 0.0498,
+       "约时间安排": 0.6951,
+       "生活琐事": 0.0078,
+       "情绪不满": 0.0025,
+       "催问回复": 0.0039,
+       "分享内容": 0.0014,
+       "红包转账": 0.0005,
+       "事务告知": 0.005,
+       "其他": 0.0403
+      }
+     },
+     "urgency": {
+      "type": "score",
+      "score": 1.61,
+      "legend": {
+       "0": "看完就好：撒娇、分享、随口说说，不用专门回",
+       "1": "看到回一下：日常闲聊，不急",
+       "2": "今天内回：在商量事、等我表态或回答问题",
+       "3": "尽快回：催问、等结果，或明显带情绪（不高兴、着急）",
+       "4": "马上回：生气、委屈或急事，得立刻回应"
+      },
+      "probabilities": {
+       "0": 0.1374,
+       "1": 0.2451,
+       "2": 0.509,
+       "3": 0.0871,
+       "4": 0.0214
+      },
+      "confidence": 0.4585
+     },
+     "need_reply": {
+      "type": "noul",
+      "noul": 0.9325
+     }
+    },
+    "intent": {
+     "value": "约时间安排",
+     "confidence": 0.6697
+    }
+   },
+   "hit_partner": true,
+   "hit_generic": false
+  },
+  {
+   "text": "看了个超好笑的视频",
+   "gold": "分享内容",
+   "generic": {
+    "raw": {
+     "intent": {
+      "type": "choice",
+      "choice": "分享内容",
+      "confidence": 0.5193,
+      "probabilities": {
+       "问候寒暄": 0.0154,
+       "闲聊分享": 0.2169,
+       "提问求助": 0.0332,
+       "征求意见": 0.0187,
+       "约时间安排": 0.0009,
+       "事务通知": 0.0292,
+       "工作交代": 0.0017,
+       "催办紧急": 0.0007,
+       "发文件链接": 0.0338,
+       "分享内容": 0.5563,
+       "红包转账": 0.0015,
+       "表达情感": 0.0252,
+       "其他": 0.0666
+      }
+     },
+     "urgency": {
+      "type": "score",
+      "score": 0.5339,
+      "legend": {
+       "0": "完全不用急：闲聊、分享类，看到也不用特地回",
+       "1": "有空回一下：常规事项，今天内回复就行",
+       "2": "尽快处理：对方在等结果、有事相求或催办，最好马上回"
+      },
+      "probabilities": {
+       "0": 0.4887,
+       "1": 0.4888,
+       "2": 0.0226
+      },
+      "confidence": 0.2331
+     },
+     "need_reply": {
+      "type": "noul",
+      "noul": 0.4128
+     }
+    },
+    "intent": {
+     "value": "分享内容",
+     "confidence": 0.5193
+    }
+   },
+   "partner": {
+    "raw": {
+     "intent": {
+      "type": "choice",
+      "choice": "闲聊分享",
+      "confidence": 0.5459,
+      "probabilities": {
+       "撒娇讨关注": 0.0083,
+       "情感表达": 0.0057,
+       "闲聊分享": 0.5809,
+       "提问求助": 0.0093,
+       "征求意见": 0.0207,
+       "约时间安排": 0.0024,
+       "生活琐事": 0.0044,
+       "情绪不满": 0.0031,
+       "催问回复": 0.0057,
+       "分享内容": 0.2949,
+       "红包转账": 0.0012,
+       "事务告知": 0.0137,
+       "其他": 0.0499
+      }
+     },
+     "urgency": {
+      "type": "score",
+      "score": 0.8827,
+      "legend": {
+       "0": "看完就好：撒娇、分享、随口说说，不用专门回",
+       "1": "看到回一下：日常闲聊，不急",
+       "2": "今天内回：在商量事、等我表态或回答问题",
+       "3": "尽快回：催问、等结果，或明显带情绪（不高兴、着急）",
+       "4": "马上回：生气、委屈或急事，得立刻回应"
+      },
+      "probabilities": {
+       "0": 0.3222,
+       "1": 0.5549,
+       "2": 0.0601,
+       "3": 0.0434,
+       "4": 0.0193
+      },
+      "confidence": 0.5607
+     },
+     "need_reply": {
+      "type": "noul",
+      "noul": 0.4128
+     }
+    },
+    "intent": {
+     "value": "闲聊分享",
+     "confidence": 0.5459
+    }
+   },
+   "hit_partner": false,
+   "hit_generic": true
+  },
+  {
+   "text": "我感冒了，难受",
+   "gold": "撒娇讨关注",
+   "generic": {
+    "raw": {
+     "intent": {
+      "type": "choice",
+      "choice": "其他",
+      "confidence": 0.2031,
+      "probabilities": {
+       "问候寒暄": 0.1279,
+       "闲聊分享": 0.1965,
+       "提问求助": 0.1079,
+       "征求意见": 0.0262,
+       "约时间安排": 0.0051,
+       "事务通知": 0.1434,
+       "工作交代": 0.0067,
+       "催办紧急": 0.0037,
+       "发文件链接": 0.0037,
+       "分享内容": 0.0055,
+       "红包转账": 0.0021,
+       "表达情感": 0.1068,
+       "其他": 0.2644
+      }
+     },
+     "urgency": {
+      "type": "score",
+      "score": 0.9442,
+      "legend": {
+       "0": "完全不用急：闲聊、分享类，看到也不用特地回",
+       "1": "有空回一下：常规事项，今天内回复就行",
+       "2": "尽快处理：对方在等结果、有事相求或催办，最好马上回"
+      },
+      "probabilities": {
+       "0": 0.2023,
+       "1": 0.6512,
+       "2": 0.1465
+      },
+      "confidence": 0.4768
+     },
+     "need_reply": {
+      "type": "noul",
+      "noul": 0.7221
+     }
+    },
+    "intent": {
+     "value": "其他",
+     "confidence": 0.2031
+    }
+   },
+   "partner": {
+    "raw": {
+     "intent": {
+      "type": "choice",
+      "choice": "撒娇讨关注",
+      "confidence": 0.4957,
+      "probabilities": {
+       "撒娇讨关注": 0.5345,
+       "情感表达": 0.0149,
+       "闲聊分享": 0.0651,
+       "提问求助": 0.0238,
+       "征求意见": 0.0085,
+       "约时间安排": 0.0033,
+       "生活琐事": 0.0163,
+       "情绪不满": 0.0116,
+       "催问回复": 0.0102,
+       "分享内容": 0.0049,
+       "红包转账": 0.0017,
+       "事务告知": 0.1259,
+       "其他": 0.1795
+      }
+     },
+     "urgency": {
+      "type": "score",
+      "score": 1.7989,
+      "legend": {
+       "0": "看完就好：撒娇、分享、随口说说，不用专门回",
+       "1": "看到回一下：日常闲聊，不急",
+       "2": "今天内回：在商量事、等我表态或回答问题",
+       "3": "尽快回：催问、等结果，或明显带情绪（不高兴、着急）",
+       "4": "马上回：生气、委屈或急事，得立刻回应"
+      },
+      "probabilities": {
+       "0": 0.1774,
+       "1": 0.3206,
+       "2": 0.153,
+       "3": 0.2239,
+       "4": 0.1252
+      },
+      "confidence": 0.0386
+     },
+     "need_reply": {
+      "type": "noul",
+      "noul": 0.7224
+     }
+    },
+    "intent": {
+     "value": "撒娇讨关注",
+     "confidence": 0.4957
+    }
+   },
+   "hit_partner": true,
+   "hit_generic": false
+  },
+  {
+   "text": "那家店你去过没",
+   "gold": "提问求助",
+   "generic": {
+    "raw": {
+     "intent": {
+      "type": "choice",
+      "choice": "提问求助",
+      "confidence": 0.26,
+      "probabilities": {
+       "问候寒暄": 0.021,
+       "闲聊分享": 0.1029,
+       "提问求助": 0.3169,
+       "征求意见": 0.2304,
+       "约时间安排": 0.0187,
+       "事务通知": 0.0325,
+       "工作交代": 0.0114,
+       "催办紧急": 0.0032,
+       "发文件链接": 0.0047,
+       "分享内容": 0.0124,
+       "红包转账": 0.0023,
+       "表达情感": 0.0391,
+       "其他": 0.2044
+      }
+     },
+     "urgency": {
+      "type": "score",
+      "score": 0.7223,
+      "legend": {
+       "0": "完全不用急：闲聊、分享类，看到也不用特地回",
+       "1": "有空回一下：常规事项，今天内回复就行",
+       "2": "尽快处理：对方在等结果、有事相求或催办，最好马上回"
+      },
+      "probabilities": {
+       "0": 0.3698,
+       "1": 0.5381,
+       "2": 0.0921
+      },
+      "confidence": 0.3071
+     },
+     "need_reply": {
+      "type": "noul",
+      "noul": 0.7305
+     }
+    },
+    "intent": {
+     "value": "提问求助",
+     "confidence": 0.26
+    }
+   },
+   "partner": {
+    "raw": {
+     "intent": {
+      "type": "choice",
+      "choice": "提问求助",
+      "confidence": 0.2215,
+      "probabilities": {
+       "撒娇讨关注": 0.0247,
+       "情感表达": 0.008,
+       "闲聊分享": 0.0941,
+       "提问求助": 0.2814,
+       "征求意见": 0.1866,
+       "约时间安排": 0.1296,
+       "生活琐事": 0.0563,
+       "情绪不满": 0.0087,
+       "催问回复": 0.0105,
+       "分享内容": 0.0093,
+       "红包转账": 0.0016,
+       "事务告知": 0.026,
+       "其他": 0.1631
+      }
+     },
+     "urgency": {
+      "type": "score",
+      "score": 1.3136,
+      "legend": {
+       "0": "看完就好：撒娇、分享、随口说说，不用专门回",
+       "1": "看到回一下：日常闲聊，不急",
+       "2": "今天内回：在商量事、等我表态或回答问题",
+       "3": "尽快回：催问、等结果，或明显带情绪（不高兴、着急）",
+       "4": "马上回：生气、委屈或急事，得立刻回应"
+      },
+      "probabilities": {
+       "0": 0.204,
+       "1": 0.4024,
+       "2": 0.2964,
+       "3": 0.0703,
+       "4": 0.0269
+      },
+      "confidence": 0.3986
+     },
+     "need_reply": {
+      "type": "noul",
+      "noul": 0.7305
+     }
+    },
+    "intent": {
+     "value": "提问求助",
+     "confidence": 0.2215
+    }
+   },
+   "hit_partner": true,
+   "hit_generic": true
+  },
+  {
+   "text": "[微信红包] 恭喜发财",
+   "gold": "红包转账",
+   "generic": {
+    "raw": {
+     "intent": {
+      "type": "choice",
+      "choice": "红包转账",
+      "confidence": 0.5692,
+      "probabilities": {
+       "问候寒暄": 0.0356,
+       "闲聊分享": 0.0655,
+       "提问求助": 0.0222,
+       "征求意见": 0.0033,
+       "约时间安排": 0.0014,
+       "事务通知": 0.048,
+       "工作交代": 0.0041,
+       "催办紧急": 0.0018,
+       "发文件链接": 0.0046,
+       "分享内容": 0.0106,
+       "红包转账": 0.6024,
+       "表达情感": 0.0652,
+       "其他": 0.1352
+      }
+     },
+     "urgency": {
+      "type": "score",
+      "score": 0.7762,
+      "legend": {
+       "0": "完全不用急：闲聊、分享类，看到也不用特地回",
+       "1": "有空回一下：常规事项，今天内回复就行",
+       "2": "尽快处理：对方在等结果、有事相求或催办，最好马上回"
+      },
+      "probabilities": {
+       "0": 0.3488,
+       "1": 0.5262,
+       "2": 0.125
+      },
+      "confidence": 0.2894
+     },
+     "need_reply": {
+      "type": "noul",
+      "noul": 0.415
+     }
+    },
+    "intent": {
+     "value": "红包转账",
+     "confidence": 0.5692
+    }
+   },
+   "partner": {
+    "raw": {
+     "intent": {
+      "type": "choice",
+      "choice": "红包转账",
+      "confidence": 0.6623,
+      "probabilities": {
+       "撒娇讨关注": 0.0258,
+       "情感表达": 0.0218,
+       "闲聊分享": 0.0484,
+       "提问求助": 0.0134,
+       "征求意见": 0.0056,
+       "约时间安排": 0.0058,
+       "生活琐事": 0.012,
+       "情绪不满": 0.0058,
+       "催问回复": 0.0131,
+       "分享内容": 0.0102,
+       "红包转账": 0.6883,
+       "事务告知": 0.0255,
+       "其他": 0.1244
+      }
+     },
+     "urgency": {
+      "type": "score",
+      "score": 1.2984,
+      "legend": {
+       "0": "看完就好：撒娇、分享、随口说说，不用专门回",
+       "1": "看到回一下：日常闲聊，不急",
+       "2": "今天内回：在商量事、等我表态或回答问题",
+       "3": "尽快回：催问、等结果，或明显带情绪（不高兴、着急）",
+       "4": "马上回：生气、委屈或急事，得立刻回应"
+      },
+      "probabilities": {
+       "0": 0.2769,
+       "1": 0.3765,
+       "2": 0.1699,
+       "3": 0.1247,
+       "4": 0.052
+      },
+      "confidence": 0.2898
+     },
+     "need_reply": {
+      "type": "noul",
+      "noul": 0.415
+     }
+    },
+    "intent": {
+     "value": "红包转账",
+     "confidence": 0.6623
+    }
+   },
+   "hit_partner": true,
+   "hit_generic": true
+  }
+ ]
+}</pre></details>
+
+<h2>七、模型输出的算分规则（后处理判定）</h2>
+
+<h3>7.1 原始输出三题结构</h3>
+<table>
+  <tr><th>题</th><th>type</th><th>直接输出</th><th>后处理（watcher.py:353 shape_result）</th></tr>
+  <tr><td>intent</td><td><code>choice</code></td><td><code>choice</code>=选项标签 + <code>probabilities</code>（13 类分布）</td>
+      <td>取 <code>choice</code> → <code>value</code>；评测命中 = <code>value == 金牌</code>（严格字符串）</td></tr>
+  <tr><td>urgency</td><td><code>score</code></td><td><code>score</code>=期望分 = Σ(档位值×probabilities[档]) + <code>legend</code></td>
+      <td><code>round(score)</code> 查 legend → 取「：」前段为 <code>label</code>（如 0.87→1→「有空回一下」）</td></tr>
+  <tr><td>need_reply</td><td><code>noul</code></td><td><code>noul</code>=P(对方在等我回复)</td>
+      <td>直接当概率用：<code>&gt;0.5</code> 判「是」（阈值硬编码于 notify 的 <code>nr &gt; 0.5</code>）</td></tr>
+</table>
+<p>注：期望档与 argmax 档可能不一致（如 P=(0.45,0.30,0.25) 时 argmax=0 但期望 0.80 → 定档 1）；watcher 采用期望档。
+<code>confidence</code> 为模型自报把握度，不参与命中判定，可作线上降级阈值（&lt;0.4 不可信）。</p>
+
+<h3>7.2 直接输出实例：「明晚有空吗」（通用版）</h3>
+<pre class="small">{
+ "intent": {
+  "type": "choice",
+  "choice": "约时间安排",
+  "confidence": 0.8517,
+  "probabilities": {
+   "问候寒暄": 0.007,
+   "闲聊分享": 0.0149,
+   "提问求助": 0.0343,
+   "征求意见": 0.0092,
+   "约时间安排": 0.8631,
+   "事务通知": 0.0093,
+   "工作交代": 0.0033,
+   "催办紧急": 0.0014,
+   "发文件链接": 0.0007,
+   "分享内容": 0.0015,
+   "红包转账": 0.0008,
+   "表达情感": 0.0138,
+   "其他": 0.0408
+  }
+ },
+ "urgency": {
+  "type": "score",
+  "score": 0.8655,
+  "legend": {
+   "0": "完全不用急：闲聊、分享类，看到也不用特地回",
+   "1": "有空回一下：常规事项，今天内回复就行",
+   "2": "尽快处理：对方在等结果、有事相求或催办，最好马上回"
+  },
+  "probabilities": {
+   "0": 0.2775,
+   "1": 0.5795,
+   "2": 0.143
+  },
+  "confidence": 0.3693
+ },
+ "need_reply": {
+  "type": "noul",
+  "noul": 0.9049
+ }
+}</pre>
+
+<h3>7.3 直接输出实例：同一条消息（专用版，合并后问题集）</h3>
+<pre class="small">{
+ "intent": {
+  "type": "choice",
+  "choice": "约时间安排",
+  "confidence": 0.4662,
+  "probabilities": {
+   "撒娇讨关注": 0.0045,
+   "情感表达": 0.0024,
+   "闲聊分享": 0.0047,
+   "提问求助": 0.4318,
+   "征求意见": 0.0042,
+   "约时间安排": 0.5072,
+   "生活琐事": 0.0037,
+   "情绪不满": 0.0024,
+   "催问回复": 0.0038,
+   "分享内容": 0.0014,
+   "红包转账": 0.0007,
+   "事务告知": 0.0066,
+   "其他": 0.0266
+  }
+ },
+ "urgency": {
+  "type": "score",
+  "score": 1.3942,
+  "legend": {
+   "0": "看完就好：撒娇、分享、随口说说，不用专门回",
+   "1": "看到回一下：日常闲聊，不急",
+   "2": "今天内回：在商量事、等我表态或回答问题",
+   "3": "尽快回：催问、等结果，或明显带情绪（不高兴、着急）",
+   "4": "马上回：生气、委屈或急事，得立刻回应"
+  },
+  "probabilities": {
+   "0": 0.2051,
+   "1": 0.3494,
+   "2": 0.3212,
+   "3": 0.095,
+   "4": 0.0294
+  },
+  "confidence": 0.3297
+ },
+ "need_reply": {
+  "type": "noul",
+  "noul": 0.9049
+ }
+}</pre>
+<p class="src">对比可见：通用版 need_reply=0.90（在等回复）且意图同判「约时间安排」；专用版紧急度 legend 变为 5 档制。
+其余 17 条 × 2 版本的完整原始输出见第六章 JSON。</p>
+
+<footer>
+  数据：eval_partner_results_v2.json（含全量 raw answers）· 合并问题集：questions_special_merged.json ·
+  脚本：eval_partner_v2_run.py（与 eval_intent_partner.py 同样本同逻辑）· v1 报告数据与本版完全一致（确定性复跑）。
+</footer>
+
+</div>
+</body>
+</html>
