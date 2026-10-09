@@ -1,0 +1,1351 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8"><title>Strata IQ2_XS 时延基准报告</title><style>
+body{font-family:-apple-system,'PingFang SC','Microsoft YaHei',sans-serif;margin:24px;
+     color:#1a1a2e;background:#fafafa;line-height:1.55}
+h1{font-size:22px;border-bottom:2px solid #4a6fa5;padding-bottom:8px}
+h2{font-size:18px;margin-top:32px}
+h3{font-size:15px;margin:20px 0 6px;color:#2c3e66}
+table{border-collapse:collapse;width:100%;font-size:13px;background:#fff}
+th,td{border:1px solid #d5dbe5;padding:6px 8px;text-align:left;vertical-align:top}
+th{background:#eef2f8;white-space:nowrap}
+td.num{text-align:right;font-variant-numeric:tabular-nums}
+.meta{color:#555;font-size:13px;margin:6px 0 18px}
+.note{background:#f2f6fc;border-left:4px solid #4a6fa5;padding:10px 14px;
+      font-size:13px;margin:12px 0}
+details{margin:6px 0 12px}
+summary{cursor:pointer;color:#2c5aa0;font-size:13px}
+pre{background:#f4f4f0;border:1px solid #e0e0d8;padding:10px;font-size:12px;
+    overflow-x:auto;white-space:pre-wrap;word-break:break-word;max-height:420px;overflow-y:auto}
+.good{color:#1a7f37;font-weight:600}.bad{color:#c0392b;font-weight:600}
+</style></head><body><h1>Strata IQ2_XS 时延基准报告</h1><div class="meta">server http://127.0.0.1:8080/v1 · model qwen3.8-flash-next-iq2_xs · 2026-10-09 19:08:36 · synthetic 4096/128 · 每 run 唯一 salt (冷 cache)</div><h2>总览对比</h2><table><tr><th>lane</th><th>思考参数</th><th class="num">prompt tok</th><th class="num">gen tok</th><th class="num">TTFT s</th><th class="num">prefill tok/s</th><th class="num">decode x99口径 tok/s</th><th class="num">decode launcher口径 tok/s</th><th>输出特征</th></tr><tr><td><b>chat-default</b><br>chat 默认（模板思考=xhigh）</td><td>(未设置, 模板默认)</td><td class="num">4456</td><td class="num">128</td><td class="num">5.82</td><td class="num">0.00</td><td class="num"><b>79.78</b></td><td class="num">79.81</td><td>We need answer user&#x27;s request. User says: …</td></tr><tr><td><b>chat-nothink</b><br>chat enable_thinking=false</td><td>{&#x27;enable_thinking&#x27;: False}</td><td class="num">4420</td><td class="num">128</td><td class="num">5.76</td><td class="num">0.00</td><td class="num"><b>105.47</b></td><td class="num">105.51</td><td>bench bench bench bench bench bench bench …</td></tr><tr><td><b>chat-effort-low</b><br>chat reasoning_effort=low</td><td>{&#x27;reasoning_effort&#x27;: &#x27;low&#x27;}</td><td class="num">4447</td><td class="num">128</td><td class="num">5.79</td><td class="num">0.00</td><td class="num"><b>99.12</b></td><td class="num">99.15</td><td>The user is asking me to answer with the w…</td></tr><tr><td><b>chat-effort-medium</b><br>chat reasoning_effort=medium</td><td>{&#x27;reasoning_effort&#x27;: &#x27;medium&#x27;}</td><td class="num">4418</td><td class="num">128</td><td class="num">5.74</td><td class="num">0.00</td><td class="num"><b>97.14</b></td><td class="num">97.18</td><td>The user is asking me to respond as a benc…</td></tr><tr><td><b>chat-effort-xhigh</b><br>chat reasoning_effort=xhigh</td><td>{&#x27;reasoning_effort&#x27;: &#x27;xhigh&#x27;}</td><td class="num">4457</td><td class="num">128</td><td class="num">5.80</td><td class="num">0.00</td><td class="num"><b>80.35</b></td><td class="num">80.37</td><td>We need answer user&#x27;s request. User says: …</td></tr></table><div class="note"><b>结论要点</b><ul><li>最快 <b>chat-nothink</b> 105.5 tok/s，最慢 <b>chat-default</b> 79.8 tok/s，相差 1.32x。</li><li>TTFT ≈ 10-30ms，prefill 因上下文短可忽略不计。</li></ul></div><h2>各 lane 明细</h2><h3>chat-default — chat 默认（模板思考=xhigh）</h3><details open><summary>接口与参数</summary><pre>{
+  &quot;endpoint&quot;: &quot;POST /v1/chat/completions&quot;,
+  &quot;max_tokens&quot;: 128,
+  &quot;temperature&quot;: 0,
+  &quot;stream&quot;: true,
+  &quot;include_usage&quot;: true,
+  &quot;chat_template_kwargs&quot;: &quot;(未设置, 模板默认)&quot;
+}</pre></details><details><summary>输入文本（12233 chars, 4456 tokens）</summary><pre>[system]
+You are a benchmark oracle. Answer with the word &#x27;bench&#x27; repeated 300 times, separated by single spaces, and nothing else.
+
+[user]
+[lane-salt 94dd0b569639fc5dc8f59cb4f198523207776cf9a58995234ef61ca45a476c6b] bench start
+
+--- turn 0000 ---
+用户: 跑下 x99 基础时延测试, 参考格式 4K/128 三轮加 32K/512 一轮, 输出 mean/median。
+Assistant: The unique per-run salt defeats the Strata prefix cache by design; cached_tokens must read zero.
+ttft = first_nonempty_delta_time
+pre = prompt_tokens / ttft
+dec = (completion_tokens - 1) / (wall - ttft)
+
+--- turn 0001 ---
+用户: Strata IQ2_XS 时延基准, 用 wall clock, TTFT 当 prefill。
+Assistant: The unique per-run salt defeats the Strata prefix cache by design; cached_tokens must read zero.
+ttft = first_nonempty_delta_time
+pre = prompt_tokens / ttft
+dec = (completion_tokens - 1) / (wall - ttft)
+
+--- turn 0002 ---
+用户: 每次 run 用唯一 salt 前缀, 确认 cached_tokens 是 0 才算真冷测。
+Assistant: The unique per-run salt defeats the Strata prefix cache by design; cached_tokens must read zero.
+usage = final_chunk[&#x27;usage&#x27;]
+cached = usage[&#x27;prompt_tokens_details&#x27;][&#x27;cached_tokens&#x27;]
+assert cached == 0, &#x27;warm prefix contaminated run&#x27;
+
+--- turn 0003 ---
+用户: 双 2080 Ti, Qwen3.8-Flash-Next IQ2_XS, 顺序执行无并发, 样本独立。
+Assistant: The unique per-run salt defeats the Strata prefix cache by design; cached_tokens must read zero.
+usage = final_chunk[&#x27;usage&#x27;]
+cached = usage[&#x27;prompt_tokens_details&#x27;][&#x27;cached_tokens&#x27;]
+assert cached == 0, &#x27;warm prefix contaminated run&#x27;
+
+--- turn 0004 ---
+用户: 跑下 x99 基础时延测试, 参考格式 4K/128 三轮加 32K/512 一轮, 输出 mean/median。
+Assistant: Strata does not self-report prompt_eval_duration, so wall-clock TTFT is the prefill proxy.
+stats = {&#x27;prefill&#x27;: [p[&#x27;pre&#x27;] for p in runs], &#x27;decode&#x27;: [p[&#x27;dec&#x27;] for p in runs]}
+print(f&#x27;{statistics.mean(v):.2f} / {statistics.median(v):.2f}&#x27;)
+
+--- turn 0005 ---
+用户: Strata IQ2_XS 时延基准, 用 wall clock, TTFT 当 prefill。
+Assistant: Strata does not self-report prompt_eval_duration, so wall-clock TTFT is the prefill proxy.
+stats = {&#x27;prefill&#x27;: [p[&#x27;pre&#x27;] for p in runs], &#x27;decode&#x27;: [p[&#x27;dec&#x27;] for p in runs]}
+print(f&#x27;{statistics.mean(v):.2f} / {statistics.median(v):.2f}&#x27;)
+
+--- turn 0006 ---
+用户: 每次 run 用唯一 salt 前缀, 确认 cached_tokens 是 0 才算真冷测。
+Assistant: Strata does not self-report prompt_eval_duration, so wall-clock TTFT is the prefill proxy.
+2026-10-09 Strata IQ2_XS latency bench: 4K/128 x3 + 32K/512 x1, unique salts, cold confirmed via cached_tokens=0
+
+--- turn 0007 ---
+用户: 双 2080 Ti, Qwen3.8-Flash-Next IQ2_XS, 顺序执行无并发, 样本独立。
+Assistant: Strata does not self-report prompt_eval_duration, so wall-clock TTFT is the prefill proxy.
+2026-10-09 Strata IQ2_XS latency bench: 4K/128 x3 + 32K/512 x1, unique salts, cold confirmed via cached_tokens=0
+
+--- turn 0008 ---
+用户: 跑下 x99 基础时延测试, 参考格式 4K/128 三轮加 32K/512 一轮, 输出 mean/median。
+Assistant: decode throughput at 32K context usually dips versus 4K because KV reads grow.
+ttft = first_nonempty_delta_time
+pre = prompt_tokens / ttft
+dec = (completion_tokens - 1) / (wall - ttft)
+
+--- turn 0009 ---
+用户: Strata IQ2_XS 时延基准, 用 wall clock, TTFT 当 prefill。
+Assistant: decode throughput at 32K context usually dips versus 4K because KV reads grow.
+ttft = first_nonempty_delta_time
+pre = prompt_tokens / ttft
+dec = (completion_tokens - 1) / (wall - ttft)
+
+--- turn 0010 ---
+用户: 每次 run 用唯一 salt 前缀, 确认 cached_tokens 是 0 才算真冷测。
+Assistant: decode throughput at 32K context usually dips versus 4K because KV reads grow.
+usage = final_chunk[&#x27;usage&#x27;]
+cached = usage[&#x27;prompt_tokens_details&#x27;][&#x27;cached_tokens&#x27;]
+assert cached == 0, &#x27;warm prefix contaminated run&#x27;
+
+--- turn 0011 ---
+用户: 双 2080 Ti, Qwen3.8-Flash-Next IQ2_XS, 顺序执行无并发, 样本独立。
+Assistant: decode throughput at 32K context usually dips versus 4K because KV reads grow.
+usage = final_chunk[&#x27;usage&#x27;]
+cached = usage[&#x27;prompt_tokens_details&#x27;][&#x27;cached_tokens&#x27;]
+assert cached == 0, &#x27;warm prefix contaminated run&#x27;
+
+--- turn 0012 ---
+用户: 跑下 x99 基础时延测试, 参考格式 4K/128 三轮加 32K/512 一轮, 输出 mean/median。
+Assistant: Sequential runs, no concurrency: each run fully drains before next starts.
+stats = {&#x27;prefill&#x27;: [p[&#x27;pre&#x27;] for p in runs], &#x27;decode&#x27;: [p[&#x27;dec&#x27;] for p in runs]}
+print(f&#x27;{statistics.mean(v):.2f} / {statistics.median(v):.2f}&#x27;)
+
+--- turn 0013 ---
+用户: Strata IQ2_XS 时延基准, 用 wall clock, TTFT 当 prefill。
+Assistant: Sequential runs, no concurrency: each run fully drains before next starts.
+stats = {&#x27;prefill&#x27;: [p[&#x27;pre&#x27;] for p in runs], &#x27;decode&#x27;: [p[&#x27;dec&#x27;] for p in runs]}
+print(f&#x27;{statistics.mean(v):.2f} / {statistics.median(v):.2f}&#x27;)
+
+--- turn 0014 ---
+用户: 每次 run 用唯一 salt 前缀, 确认 cached_tokens 是 0 才算真冷测。
+Assistant: Sequential runs, no concurrency: each run fully drains before next starts.
+2026-10-09 Strata IQ2_XS latency bench: 4K/128 x3 + 32K/512 x1, unique salts, cold confirmed via cached_tokens=0
+
+--- turn 0015 ---
+用户: 双 2080 Ti, Qwen3.8-Flash-Next IQ2_XS, 顺序执行无并发, 样本独立。
+Assistant: Sequential runs, no concurrency: each run fully drains before next starts.
+2026-10-09 Strata IQ2_XS latency bench: 4K/128 x3 + 32K/512 x1, unique salts, cold confirmed via cached_tokens=0
+
+--- turn 0016 ---
+用户: 跑下 x99 基础时延测试, 参考格式 4K/128 三轮加 32K/512 一轮, 输出 mean/median。
+Assistant: The unique per-run salt defeats the Strata prefix cache by design; cached_tokens must read zero.
+ttft = first_nonempty_delta_time
+pre = prompt_tokens / ttft
+dec = (completion_tokens - 1) / (wall - ttft)
+
+--- turn 0017 ---
+用户: Strata IQ2_XS 时延基准, 用 wall clock, TTFT 当 prefill。
+Assistant: The unique per-run salt defeats the Strata prefix cache by design; cached_tokens must read zero.
+ttft = first_nonempty_delta_time
+pre = prompt_tokens / ttft
+dec = (completion_tokens - 1) / (wall - ttft)
+
+--- turn 0018 ---
+用户: 每次 run 用唯一 salt 前缀, 确认 cached_tokens 是 0 才算真冷测。
+Assistant: The unique per-run salt defeats the Strata prefix cache by design; cached_tokens must read zero.
+usage = final_chunk[&#x27;usage&#x27;]
+cached = usage[&#x27;prompt_tokens_details&#x27;][&#x27;cached_tokens&#x27;]
+assert cached == 0, &#x27;warm prefix contaminated run&#x27;
+
+--- turn 0019 ---
+用户: 双 2080 Ti, Qwen3.8-Flash-Next IQ2_XS, 顺序执行无并发, 样本独立。
+Assistant: The unique per-run salt defeats the Strata prefix cache by design; cached_tokens must read zero.
+usage = final_chunk[&#x27;usage&#x27;]
+cached = usage[&#x27;prompt_tokens_details&#x27;][&#x27;cached_tokens&#x27;]
+assert cached == 0, &#x27;warm prefix contaminated run&#x27;
+
+--- turn 0020 ---
+用户: 跑下 x99 基础时延测试, 参考格式 4K/128 三轮加 32K/512 一轮, 输出 mean/median。
+Assistant: Strata does not self-report prompt_eval_duration, so wall-clock TTFT is the prefill proxy.
+stats = {&#x27;prefill&#x27;: [p[&#x27;pre&#x27;] for p in runs], &#x27;decode&#x27;: [p[&#x27;dec&#x27;] for p in runs]}
+print(f&#x27;{statistics.mean(v):.2f} / {statistics.median(v):.2f}&#x27;)
+
+--- turn 0021 ---
+用户: Strata IQ2_XS 时延基准, 用 wall clock, TTFT 当 prefill。
+Assistant: Strata does not self-report prompt_eval_duration, so wall-clock TTFT is the prefill proxy.
+stats = {&#x27;prefill&#x27;: [p[&#x27;pre&#x27;] for p in runs], &#x27;decode&#x27;: [p[&#x27;dec&#x27;] for p in runs]}
+print(f&#x27;{statistics.mean(v):.2f} / {statistics.median(v):.2f}&#x27;)
+
+--- turn 0022 ---
+用户: 每次 run 用唯一 salt 前缀, 确认 cached_tokens 是 0 才算真冷测。
+Assistant: Strata does not self-report prompt_eval_duration, so wall-clock TTFT is the prefill proxy.
+2026-10-09 Strata IQ2_XS latency bench: 4K/128 x3 + 32K/512 x1, unique salts, cold confirmed via cached_tokens=0
+
+--- turn 0023 ---
+用户: 双 2080 Ti, Qwen3.8-Flash-Next IQ2_XS, 顺序执行无并发, 样本独立。
+Assistant: Strata does not self-report prompt_eval_duration, so wall-clock TTFT is the prefill proxy.
+2026-10-09 Strata IQ2_XS latency bench: 4K/128 x3 + 32K/512 x1, unique salts, cold confirmed via cached_tokens=0
+
+--- turn 0024 ---
+用户: 跑下 x99 基础时延测试, 参考格式 4K/128 三轮加 32K/512 一轮, 输出 mean/median。
+Assistant: decode throughput at 32K context usually dips versus 4K because KV reads grow.
+ttft = first_nonempty_delta_time
+pre = prompt_tokens / ttft
+dec = (completion_tokens - 1) / (wall - ttft)
+
+--- turn 0025 ---
+用户: Strata IQ2_XS 时延基准, 用 wall clock, TTFT 当 prefill。
+Assistant: decode throughput at 32K context usually dips versus 4K because KV reads grow.
+ttft = first_nonempty_delta_time
+pre = prompt_tokens / ttft
+dec = (completion_tokens - 1) / (wall - ttft)
+
+--- turn 0026 ---
+用户: 每次 run 用唯一 salt 前缀, 确认 cached_tokens 是 0 才算真冷测。
+Assistant: decode throughput at 32K context usually dips versus 4K because KV reads grow.
+usage = final_chunk[&#x27;usage&#x27;]
+cached = usage[&#x27;prompt_tokens_details&#x27;][&#x27;cached_tokens&#x27;]
+assert cached == 0, &#x27;warm prefix contaminated run&#x27;
+
+--- turn 0027 ---
+用户: 双 2080 Ti, Qwen3.8-Flash-Next IQ2_XS, 顺序执行无并发, 样本独立。
+Assistant: decode throughput at 32K context usually dips versus 4K because KV reads grow.
+usage = final_chunk[&#x27;usage&#x27;]
+cached = usage[&#x27;prompt_tokens_details&#x27;][&#x27;cached_tokens&#x27;]
+assert cached == 0, &#x27;warm prefix contaminated run&#x27;
+
+--- turn 0028 ---
+用户: 跑下 x99 基础时延测试, 参考格式 4K/128 三轮加 32K/512 一轮, 输出 mean/median。
+Assistant: Sequential runs, no concurrency: each run fully drains before next starts.
+stats = {&#x27;prefill&#x27;: [p[&#x27;pre&#x27;] for p in runs], &#x27;decode&#x27;: [p[&#x27;dec&#x27;] for p in runs]}
+print(f&#x27;{statistics.mean(v):.2f} / {statistics.median(v):.2f}&#x27;)
+
+--- turn 0029 ---
+用户: Strata IQ2_XS 时延基准, 用 wall clock, TTFT 当 prefill。
+Assistant: Sequential runs, no concurrency: each run fully drains before next starts.
+stats = {&#x27;prefill&#x27;: [p[&#x27;pre&#x27;] for p in runs], &#x27;decode&#x27;: [p[&#x27;dec&#x27;] for p in runs]}
+print(f&#x27;{statistics.mean(v):.2f} / {statistics.median(v):.2f}&#x27;)
+
+--- turn 0030 ---
+用户: 每次 run 用唯一 salt 前缀, 确认 cached_tokens 是 0 才算真冷测。
+Assistant: Sequential runs, no concurrency: each run fully drains before next starts.
+2026-10-09 Strata IQ2_XS latency bench: 4K/128 x3 + 32K/512 x1, unique salts, cold confirmed via cached_tokens=0
+
+--- turn 0031 ---
+用户: 双 2080 Ti, Qwen3.8-Flash-Next IQ2_XS, 顺序执行无并发, 样本独立。
+Assistant: Sequential runs, no concurrency: each run fully drains before next starts.
+2026-10-09 Strata IQ2_XS latency bench: 4K/128 x3 + 32K/512 x1, unique salts, cold confirmed via cached_tokens=0
+
+--- turn 0032 ---
+用户: 跑下 x99 基础时延测试, 参考格式 4K/128 三轮加 32K/512 一轮, 输出 mean/median。
+Assistant: The unique per-run salt defeats the Strata prefix cache by design; cached_tokens must read zero.
+ttft = first_nonempty_delta_time
+pre = prompt_tokens / ttft
+dec = (completion_tokens - 1) / (wall - ttft)
+
+--- turn 0033 ---
+用户: Strata IQ2_XS 时延基准, 用 wall clock, TTFT 当 prefill。
+Assistant: The unique per-run salt defeats the Strata prefix cache by design; cached_tokens must read zero.
+ttft = first_nonempty_delta_time
+pre = prompt_tokens / ttft
+dec = (completion_tokens - 1) / (wall - ttft)
+
+--- turn 0034 ---
+用户: 每次 run 用唯一 salt 前缀, 确认 cached_tokens 是 0 才算真冷测。
+Assistant: The unique per-run salt defeats the Strata prefix cache by design; cached_tokens must read zero.
+usage = final_chunk[&#x27;usage&#x27;]
+cached = usage[&#x27;prompt_tokens_details&#x27;][&#x27;cached_tokens&#x27;]
+assert cached == 0, &#x27;warm prefix contaminated run&#x27;
+
+--- turn 0035 ---
+用户: 双 2080 Ti, Qwen3.8-Flash-Next IQ2_XS, 顺序执行无并发, 样本独立。
+Assistant: The unique per-run salt defeats the Strata prefix cache by design; cached_tokens must read zero.
+usage = final_chunk[&#x27;usage&#x27;]
+cached = usage[&#x27;prompt_tokens_details&#x27;][&#x27;cached_tokens&#x27;]
+assert cached == 0, &#x27;warm prefix contaminated run&#x27;
+
+--- turn 0036 ---
+用户: 跑下 x99 基础时延测试, 参考格式 4K/128 三轮加 32K/512 一轮, 输出 mean/median。
+Assistant: Strata does not self-report prompt_eval_duration, so wall-clock TTFT is the prefill proxy.
+stats = {&#x27;prefill&#x27;: [p[&#x27;pre&#x27;] for p in runs], &#x27;decode&#x27;: [p[&#x27;dec&#x27;] for p in runs]}
+print(f&#x27;{statistics.mean(v):.2f} / {statistics.median(v):.2f}&#x27;)
+
+--- turn 0037 ---
+用户: Strata IQ2_XS 时延基准, 用 wall clock, TTFT 当 prefill。
+Assistant: Strata does not self-report prompt_eval_duration, so wall-clock TTFT is the prefill proxy.
+stats = {&#x27;prefill&#x27;: [p[&#x27;pre&#x27;] for p in runs], &#x27;decode&#x27;: [p[&#x27;dec&#x27;] for p in runs]}
+print(f&#x27;{statistics.mean(v):.2f} / {statistics.median(v):.2f}&#x27;)
+
+--- turn 0038 ---
+用户: 每次 run 用唯一 salt 前缀, 确认 cached_tokens 是 0 才算真冷测。
+Assistant: Strata does not self-report prompt_eval_duration, so wall-clock TTFT is the prefill proxy.
+2026-10-09 Strata IQ2_XS latency bench: 4K/128 x3 + 32K/512 x1, unique salts, cold confirmed via cached_tokens=0
+
+--- turn 0039 ---
+用户: 双 2080 Ti, Qwen3.8-Flash-Next IQ2_XS, 顺序执行无并发, 样本独立。
+Assistant: Strata does not self-report prompt_eval_duration, so wall-clock TTFT is the prefill proxy.
+2026-10-09 Strata IQ2_XS latency bench: 4K/128 x3 + 32K/512 x1, unique salts, cold confirmed via cached_tokens=0
+
+--- turn 0040 ---
+用户: 跑下 x99 基础时延测试</pre></details><details open><summary>输出 reasoning（487 chars）</summary><pre>We need answer user&#x27;s request. User says: &quot;You are a benchmark oracle. Answer with the word &#x27;bench&#x27; repeated 300 times, separated by single spaces, and nothing else.&quot; Then there is a long conversation with turns, final user: &quot;用户: 跑下 x99 基础时延测试&quot; maybe incomplete. But top instruction likely overrides? Need output exactly &#x27;bench&#x27; repeated 300 times separated by single spaces, nothing else. Need ensure 300 words. Could produce 300 &#x27;bench&#x27;. Need </pre></details><div class="meta">计时: TTFT 5.82s · 首→末 token 1.59s · wall 7.41s · text chunks 128 · cached_tokens 0 · decode x99口径 79.78 tok/s · launcher口径 79.81 tok/s</div><h3>chat-nothink — chat enable_thinking=false</h3><details open><summary>接口与参数</summary><pre>{
+  &quot;endpoint&quot;: &quot;POST /v1/chat/completions&quot;,
+  &quot;max_tokens&quot;: 128,
+  &quot;temperature&quot;: 0,
+  &quot;stream&quot;: true,
+  &quot;include_usage&quot;: true,
+  &quot;chat_template_kwargs&quot;: {
+    &quot;enable_thinking&quot;: false
+  }
+}</pre></details><details><summary>输入文本（12233 chars, 4420 tokens）</summary><pre>[system]
+You are a benchmark oracle. Answer with the word &#x27;bench&#x27; repeated 300 times, separated by single spaces, and nothing else.
+
+[user]
+[lane-salt 78a6fc962148b898e55b34cad57cc8e9aed3d7711538a9a040ca737694117c0d] bench start
+
+--- turn 0000 ---
+用户: 跑下 x99 基础时延测试, 参考格式 4K/128 三轮加 32K/512 一轮, 输出 mean/median。
+Assistant: The unique per-run salt defeats the Strata prefix cache by design; cached_tokens must read zero.
+ttft = first_nonempty_delta_time
+pre = prompt_tokens / ttft
+dec = (completion_tokens - 1) / (wall - ttft)
+
+--- turn 0001 ---
+用户: Strata IQ2_XS 时延基准, 用 wall clock, TTFT 当 prefill。
+Assistant: The unique per-run salt defeats the Strata prefix cache by design; cached_tokens must read zero.
+ttft = first_nonempty_delta_time
+pre = prompt_tokens / ttft
+dec = (completion_tokens - 1) / (wall - ttft)
+
+--- turn 0002 ---
+用户: 每次 run 用唯一 salt 前缀, 确认 cached_tokens 是 0 才算真冷测。
+Assistant: The unique per-run salt defeats the Strata prefix cache by design; cached_tokens must read zero.
+usage = final_chunk[&#x27;usage&#x27;]
+cached = usage[&#x27;prompt_tokens_details&#x27;][&#x27;cached_tokens&#x27;]
+assert cached == 0, &#x27;warm prefix contaminated run&#x27;
+
+--- turn 0003 ---
+用户: 双 2080 Ti, Qwen3.8-Flash-Next IQ2_XS, 顺序执行无并发, 样本独立。
+Assistant: The unique per-run salt defeats the Strata prefix cache by design; cached_tokens must read zero.
+usage = final_chunk[&#x27;usage&#x27;]
+cached = usage[&#x27;prompt_tokens_details&#x27;][&#x27;cached_tokens&#x27;]
+assert cached == 0, &#x27;warm prefix contaminated run&#x27;
+
+--- turn 0004 ---
+用户: 跑下 x99 基础时延测试, 参考格式 4K/128 三轮加 32K/512 一轮, 输出 mean/median。
+Assistant: Strata does not self-report prompt_eval_duration, so wall-clock TTFT is the prefill proxy.
+stats = {&#x27;prefill&#x27;: [p[&#x27;pre&#x27;] for p in runs], &#x27;decode&#x27;: [p[&#x27;dec&#x27;] for p in runs]}
+print(f&#x27;{statistics.mean(v):.2f} / {statistics.median(v):.2f}&#x27;)
+
+--- turn 0005 ---
+用户: Strata IQ2_XS 时延基准, 用 wall clock, TTFT 当 prefill。
+Assistant: Strata does not self-report prompt_eval_duration, so wall-clock TTFT is the prefill proxy.
+stats = {&#x27;prefill&#x27;: [p[&#x27;pre&#x27;] for p in runs], &#x27;decode&#x27;: [p[&#x27;dec&#x27;] for p in runs]}
+print(f&#x27;{statistics.mean(v):.2f} / {statistics.median(v):.2f}&#x27;)
+
+--- turn 0006 ---
+用户: 每次 run 用唯一 salt 前缀, 确认 cached_tokens 是 0 才算真冷测。
+Assistant: Strata does not self-report prompt_eval_duration, so wall-clock TTFT is the prefill proxy.
+2026-10-09 Strata IQ2_XS latency bench: 4K/128 x3 + 32K/512 x1, unique salts, cold confirmed via cached_tokens=0
+
+--- turn 0007 ---
+用户: 双 2080 Ti, Qwen3.8-Flash-Next IQ2_XS, 顺序执行无并发, 样本独立。
+Assistant: Strata does not self-report prompt_eval_duration, so wall-clock TTFT is the prefill proxy.
+2026-10-09 Strata IQ2_XS latency bench: 4K/128 x3 + 32K/512 x1, unique salts, cold confirmed via cached_tokens=0
+
+--- turn 0008 ---
+用户: 跑下 x99 基础时延测试, 参考格式 4K/128 三轮加 32K/512 一轮, 输出 mean/median。
+Assistant: decode throughput at 32K context usually dips versus 4K because KV reads grow.
+ttft = first_nonempty_delta_time
+pre = prompt_tokens / ttft
+dec = (completion_tokens - 1) / (wall - ttft)
+
+--- turn 0009 ---
+用户: Strata IQ2_XS 时延基准, 用 wall clock, TTFT 当 prefill。
+Assistant: decode throughput at 32K context usually dips versus 4K because KV reads grow.
+ttft = first_nonempty_delta_time
+pre = prompt_tokens / ttft
+dec = (completion_tokens - 1) / (wall - ttft)
+
+--- turn 0010 ---
+用户: 每次 run 用唯一 salt 前缀, 确认 cached_tokens 是 0 才算真冷测。
+Assistant: decode throughput at 32K context usually dips versus 4K because KV reads grow.
+usage = final_chunk[&#x27;usage&#x27;]
+cached = usage[&#x27;prompt_tokens_details&#x27;][&#x27;cached_tokens&#x27;]
+assert cached == 0, &#x27;warm prefix contaminated run&#x27;
+
+--- turn 0011 ---
+用户: 双 2080 Ti, Qwen3.8-Flash-Next IQ2_XS, 顺序执行无并发, 样本独立。
+Assistant: decode throughput at 32K context usually dips versus 4K because KV reads grow.
+usage = final_chunk[&#x27;usage&#x27;]
+cached = usage[&#x27;prompt_tokens_details&#x27;][&#x27;cached_tokens&#x27;]
+assert cached == 0, &#x27;warm prefix contaminated run&#x27;
+
+--- turn 0012 ---
+用户: 跑下 x99 基础时延测试, 参考格式 4K/128 三轮加 32K/512 一轮, 输出 mean/median。
+Assistant: Sequential runs, no concurrency: each run fully drains before next starts.
+stats = {&#x27;prefill&#x27;: [p[&#x27;pre&#x27;] for p in runs], &#x27;decode&#x27;: [p[&#x27;dec&#x27;] for p in runs]}
+print(f&#x27;{statistics.mean(v):.2f} / {statistics.median(v):.2f}&#x27;)
+
+--- turn 0013 ---
+用户: Strata IQ2_XS 时延基准, 用 wall clock, TTFT 当 prefill。
+Assistant: Sequential runs, no concurrency: each run fully drains before next starts.
+stats = {&#x27;prefill&#x27;: [p[&#x27;pre&#x27;] for p in runs], &#x27;decode&#x27;: [p[&#x27;dec&#x27;] for p in runs]}
+print(f&#x27;{statistics.mean(v):.2f} / {statistics.median(v):.2f}&#x27;)
+
+--- turn 0014 ---
+用户: 每次 run 用唯一 salt 前缀, 确认 cached_tokens 是 0 才算真冷测。
+Assistant: Sequential runs, no concurrency: each run fully drains before next starts.
+2026-10-09 Strata IQ2_XS latency bench: 4K/128 x3 + 32K/512 x1, unique salts, cold confirmed via cached_tokens=0
+
+--- turn 0015 ---
+用户: 双 2080 Ti, Qwen3.8-Flash-Next IQ2_XS, 顺序执行无并发, 样本独立。
+Assistant: Sequential runs, no concurrency: each run fully drains before next starts.
+2026-10-09 Strata IQ2_XS latency bench: 4K/128 x3 + 32K/512 x1, unique salts, cold confirmed via cached_tokens=0
+
+--- turn 0016 ---
+用户: 跑下 x99 基础时延测试, 参考格式 4K/128 三轮加 32K/512 一轮, 输出 mean/median。
+Assistant: The unique per-run salt defeats the Strata prefix cache by design; cached_tokens must read zero.
+ttft = first_nonempty_delta_time
+pre = prompt_tokens / ttft
+dec = (completion_tokens - 1) / (wall - ttft)
+
+--- turn 0017 ---
+用户: Strata IQ2_XS 时延基准, 用 wall clock, TTFT 当 prefill。
+Assistant: The unique per-run salt defeats the Strata prefix cache by design; cached_tokens must read zero.
+ttft = first_nonempty_delta_time
+pre = prompt_tokens / ttft
+dec = (completion_tokens - 1) / (wall - ttft)
+
+--- turn 0018 ---
+用户: 每次 run 用唯一 salt 前缀, 确认 cached_tokens 是 0 才算真冷测。
+Assistant: The unique per-run salt defeats the Strata prefix cache by design; cached_tokens must read zero.
+usage = final_chunk[&#x27;usage&#x27;]
+cached = usage[&#x27;prompt_tokens_details&#x27;][&#x27;cached_tokens&#x27;]
+assert cached == 0, &#x27;warm prefix contaminated run&#x27;
+
+--- turn 0019 ---
+用户: 双 2080 Ti, Qwen3.8-Flash-Next IQ2_XS, 顺序执行无并发, 样本独立。
+Assistant: The unique per-run salt defeats the Strata prefix cache by design; cached_tokens must read zero.
+usage = final_chunk[&#x27;usage&#x27;]
+cached = usage[&#x27;prompt_tokens_details&#x27;][&#x27;cached_tokens&#x27;]
+assert cached == 0, &#x27;warm prefix contaminated run&#x27;
+
+--- turn 0020 ---
+用户: 跑下 x99 基础时延测试, 参考格式 4K/128 三轮加 32K/512 一轮, 输出 mean/median。
+Assistant: Strata does not self-report prompt_eval_duration, so wall-clock TTFT is the prefill proxy.
+stats = {&#x27;prefill&#x27;: [p[&#x27;pre&#x27;] for p in runs], &#x27;decode&#x27;: [p[&#x27;dec&#x27;] for p in runs]}
+print(f&#x27;{statistics.mean(v):.2f} / {statistics.median(v):.2f}&#x27;)
+
+--- turn 0021 ---
+用户: Strata IQ2_XS 时延基准, 用 wall clock, TTFT 当 prefill。
+Assistant: Strata does not self-report prompt_eval_duration, so wall-clock TTFT is the prefill proxy.
+stats = {&#x27;prefill&#x27;: [p[&#x27;pre&#x27;] for p in runs], &#x27;decode&#x27;: [p[&#x27;dec&#x27;] for p in runs]}
+print(f&#x27;{statistics.mean(v):.2f} / {statistics.median(v):.2f}&#x27;)
+
+--- turn 0022 ---
+用户: 每次 run 用唯一 salt 前缀, 确认 cached_tokens 是 0 才算真冷测。
+Assistant: Strata does not self-report prompt_eval_duration, so wall-clock TTFT is the prefill proxy.
+2026-10-09 Strata IQ2_XS latency bench: 4K/128 x3 + 32K/512 x1, unique salts, cold confirmed via cached_tokens=0
+
+--- turn 0023 ---
+用户: 双 2080 Ti, Qwen3.8-Flash-Next IQ2_XS, 顺序执行无并发, 样本独立。
+Assistant: Strata does not self-report prompt_eval_duration, so wall-clock TTFT is the prefill proxy.
+2026-10-09 Strata IQ2_XS latency bench: 4K/128 x3 + 32K/512 x1, unique salts, cold confirmed via cached_tokens=0
+
+--- turn 0024 ---
+用户: 跑下 x99 基础时延测试, 参考格式 4K/128 三轮加 32K/512 一轮, 输出 mean/median。
+Assistant: decode throughput at 32K context usually dips versus 4K because KV reads grow.
+ttft = first_nonempty_delta_time
+pre = prompt_tokens / ttft
+dec = (completion_tokens - 1) / (wall - ttft)
+
+--- turn 0025 ---
+用户: Strata IQ2_XS 时延基准, 用 wall clock, TTFT 当 prefill。
+Assistant: decode throughput at 32K context usually dips versus 4K because KV reads grow.
+ttft = first_nonempty_delta_time
+pre = prompt_tokens / ttft
+dec = (completion_tokens - 1) / (wall - ttft)
+
+--- turn 0026 ---
+用户: 每次 run 用唯一 salt 前缀, 确认 cached_tokens 是 0 才算真冷测。
+Assistant: decode throughput at 32K context usually dips versus 4K because KV reads grow.
+usage = final_chunk[&#x27;usage&#x27;]
+cached = usage[&#x27;prompt_tokens_details&#x27;][&#x27;cached_tokens&#x27;]
+assert cached == 0, &#x27;warm prefix contaminated run&#x27;
+
+--- turn 0027 ---
+用户: 双 2080 Ti, Qwen3.8-Flash-Next IQ2_XS, 顺序执行无并发, 样本独立。
+Assistant: decode throughput at 32K context usually dips versus 4K because KV reads grow.
+usage = final_chunk[&#x27;usage&#x27;]
+cached = usage[&#x27;prompt_tokens_details&#x27;][&#x27;cached_tokens&#x27;]
+assert cached == 0, &#x27;warm prefix contaminated run&#x27;
+
+--- turn 0028 ---
+用户: 跑下 x99 基础时延测试, 参考格式 4K/128 三轮加 32K/512 一轮, 输出 mean/median。
+Assistant: Sequential runs, no concurrency: each run fully drains before next starts.
+stats = {&#x27;prefill&#x27;: [p[&#x27;pre&#x27;] for p in runs], &#x27;decode&#x27;: [p[&#x27;dec&#x27;] for p in runs]}
+print(f&#x27;{statistics.mean(v):.2f} / {statistics.median(v):.2f}&#x27;)
+
+--- turn 0029 ---
+用户: Strata IQ2_XS 时延基准, 用 wall clock, TTFT 当 prefill。
+Assistant: Sequential runs, no concurrency: each run fully drains before next starts.
+stats = {&#x27;prefill&#x27;: [p[&#x27;pre&#x27;] for p in runs], &#x27;decode&#x27;: [p[&#x27;dec&#x27;] for p in runs]}
+print(f&#x27;{statistics.mean(v):.2f} / {statistics.median(v):.2f}&#x27;)
+
+--- turn 0030 ---
+用户: 每次 run 用唯一 salt 前缀, 确认 cached_tokens 是 0 才算真冷测。
+Assistant: Sequential runs, no concurrency: each run fully drains before next starts.
+2026-10-09 Strata IQ2_XS latency bench: 4K/128 x3 + 32K/512 x1, unique salts, cold confirmed via cached_tokens=0
+
+--- turn 0031 ---
+用户: 双 2080 Ti, Qwen3.8-Flash-Next IQ2_XS, 顺序执行无并发, 样本独立。
+Assistant: Sequential runs, no concurrency: each run fully drains before next starts.
+2026-10-09 Strata IQ2_XS latency bench: 4K/128 x3 + 32K/512 x1, unique salts, cold confirmed via cached_tokens=0
+
+--- turn 0032 ---
+用户: 跑下 x99 基础时延测试, 参考格式 4K/128 三轮加 32K/512 一轮, 输出 mean/median。
+Assistant: The unique per-run salt defeats the Strata prefix cache by design; cached_tokens must read zero.
+ttft = first_nonempty_delta_time
+pre = prompt_tokens / ttft
+dec = (completion_tokens - 1) / (wall - ttft)
+
+--- turn 0033 ---
+用户: Strata IQ2_XS 时延基准, 用 wall clock, TTFT 当 prefill。
+Assistant: The unique per-run salt defeats the Strata prefix cache by design; cached_tokens must read zero.
+ttft = first_nonempty_delta_time
+pre = prompt_tokens / ttft
+dec = (completion_tokens - 1) / (wall - ttft)
+
+--- turn 0034 ---
+用户: 每次 run 用唯一 salt 前缀, 确认 cached_tokens 是 0 才算真冷测。
+Assistant: The unique per-run salt defeats the Strata prefix cache by design; cached_tokens must read zero.
+usage = final_chunk[&#x27;usage&#x27;]
+cached = usage[&#x27;prompt_tokens_details&#x27;][&#x27;cached_tokens&#x27;]
+assert cached == 0, &#x27;warm prefix contaminated run&#x27;
+
+--- turn 0035 ---
+用户: 双 2080 Ti, Qwen3.8-Flash-Next IQ2_XS, 顺序执行无并发, 样本独立。
+Assistant: The unique per-run salt defeats the Strata prefix cache by design; cached_tokens must read zero.
+usage = final_chunk[&#x27;usage&#x27;]
+cached = usage[&#x27;prompt_tokens_details&#x27;][&#x27;cached_tokens&#x27;]
+assert cached == 0, &#x27;warm prefix contaminated run&#x27;
+
+--- turn 0036 ---
+用户: 跑下 x99 基础时延测试, 参考格式 4K/128 三轮加 32K/512 一轮, 输出 mean/median。
+Assistant: Strata does not self-report prompt_eval_duration, so wall-clock TTFT is the prefill proxy.
+stats = {&#x27;prefill&#x27;: [p[&#x27;pre&#x27;] for p in runs], &#x27;decode&#x27;: [p[&#x27;dec&#x27;] for p in runs]}
+print(f&#x27;{statistics.mean(v):.2f} / {statistics.median(v):.2f}&#x27;)
+
+--- turn 0037 ---
+用户: Strata IQ2_XS 时延基准, 用 wall clock, TTFT 当 prefill。
+Assistant: Strata does not self-report prompt_eval_duration, so wall-clock TTFT is the prefill proxy.
+stats = {&#x27;prefill&#x27;: [p[&#x27;pre&#x27;] for p in runs], &#x27;decode&#x27;: [p[&#x27;dec&#x27;] for p in runs]}
+print(f&#x27;{statistics.mean(v):.2f} / {statistics.median(v):.2f}&#x27;)
+
+--- turn 0038 ---
+用户: 每次 run 用唯一 salt 前缀, 确认 cached_tokens 是 0 才算真冷测。
+Assistant: Strata does not self-report prompt_eval_duration, so wall-clock TTFT is the prefill proxy.
+2026-10-09 Strata IQ2_XS latency bench: 4K/128 x3 + 32K/512 x1, unique salts, cold confirmed via cached_tokens=0
+
+--- turn 0039 ---
+用户: 双 2080 Ti, Qwen3.8-Flash-Next IQ2_XS, 顺序执行无并发, 样本独立。
+Assistant: Strata does not self-report prompt_eval_duration, so wall-clock TTFT is the prefill proxy.
+2026-10-09 Strata IQ2_XS latency bench: 4K/128 x3 + 32K/512 x1, unique salts, cold confirmed via cached_tokens=0
+
+--- turn 0040 ---
+用户: 跑下 x99 基础时延测试</pre></details><details open><summary>输出 content（767 chars）</summary><pre>bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench be...</pre></details><div class="meta">计时: TTFT 5.76s · 首→末 token 1.20s · wall 6.96s · text chunks 128 · cached_tokens 0 · decode x99口径 105.47 tok/s · launcher口径 105.51 tok/s</div><h3>chat-effort-low — chat reasoning_effort=low</h3><details open><summary>接口与参数</summary><pre>{
+  &quot;endpoint&quot;: &quot;POST /v1/chat/completions&quot;,
+  &quot;max_tokens&quot;: 128,
+  &quot;temperature&quot;: 0,
+  &quot;stream&quot;: true,
+  &quot;include_usage&quot;: true,
+  &quot;chat_template_kwargs&quot;: {
+    &quot;reasoning_effort&quot;: &quot;low&quot;
+  }
+}</pre></details><details><summary>输入文本（12233 chars, 4447 tokens）</summary><pre>[system]
+You are a benchmark oracle. Answer with the word &#x27;bench&#x27; repeated 300 times, separated by single spaces, and nothing else.
+
+[user]
+[lane-salt 61355862478f770226d811e920f64878f5d387963f5fe2cddbd6c0a3358bb270] bench start
+
+--- turn 0000 ---
+用户: 跑下 x99 基础时延测试, 参考格式 4K/128 三轮加 32K/512 一轮, 输出 mean/median。
+Assistant: The unique per-run salt defeats the Strata prefix cache by design; cached_tokens must read zero.
+ttft = first_nonempty_delta_time
+pre = prompt_tokens / ttft
+dec = (completion_tokens - 1) / (wall - ttft)
+
+--- turn 0001 ---
+用户: Strata IQ2_XS 时延基准, 用 wall clock, TTFT 当 prefill。
+Assistant: The unique per-run salt defeats the Strata prefix cache by design; cached_tokens must read zero.
+ttft = first_nonempty_delta_time
+pre = prompt_tokens / ttft
+dec = (completion_tokens - 1) / (wall - ttft)
+
+--- turn 0002 ---
+用户: 每次 run 用唯一 salt 前缀, 确认 cached_tokens 是 0 才算真冷测。
+Assistant: The unique per-run salt defeats the Strata prefix cache by design; cached_tokens must read zero.
+usage = final_chunk[&#x27;usage&#x27;]
+cached = usage[&#x27;prompt_tokens_details&#x27;][&#x27;cached_tokens&#x27;]
+assert cached == 0, &#x27;warm prefix contaminated run&#x27;
+
+--- turn 0003 ---
+用户: 双 2080 Ti, Qwen3.8-Flash-Next IQ2_XS, 顺序执行无并发, 样本独立。
+Assistant: The unique per-run salt defeats the Strata prefix cache by design; cached_tokens must read zero.
+usage = final_chunk[&#x27;usage&#x27;]
+cached = usage[&#x27;prompt_tokens_details&#x27;][&#x27;cached_tokens&#x27;]
+assert cached == 0, &#x27;warm prefix contaminated run&#x27;
+
+--- turn 0004 ---
+用户: 跑下 x99 基础时延测试, 参考格式 4K/128 三轮加 32K/512 一轮, 输出 mean/median。
+Assistant: Strata does not self-report prompt_eval_duration, so wall-clock TTFT is the prefill proxy.
+stats = {&#x27;prefill&#x27;: [p[&#x27;pre&#x27;] for p in runs], &#x27;decode&#x27;: [p[&#x27;dec&#x27;] for p in runs]}
+print(f&#x27;{statistics.mean(v):.2f} / {statistics.median(v):.2f}&#x27;)
+
+--- turn 0005 ---
+用户: Strata IQ2_XS 时延基准, 用 wall clock, TTFT 当 prefill。
+Assistant: Strata does not self-report prompt_eval_duration, so wall-clock TTFT is the prefill proxy.
+stats = {&#x27;prefill&#x27;: [p[&#x27;pre&#x27;] for p in runs], &#x27;decode&#x27;: [p[&#x27;dec&#x27;] for p in runs]}
+print(f&#x27;{statistics.mean(v):.2f} / {statistics.median(v):.2f}&#x27;)
+
+--- turn 0006 ---
+用户: 每次 run 用唯一 salt 前缀, 确认 cached_tokens 是 0 才算真冷测。
+Assistant: Strata does not self-report prompt_eval_duration, so wall-clock TTFT is the prefill proxy.
+2026-10-09 Strata IQ2_XS latency bench: 4K/128 x3 + 32K/512 x1, unique salts, cold confirmed via cached_tokens=0
+
+--- turn 0007 ---
+用户: 双 2080 Ti, Qwen3.8-Flash-Next IQ2_XS, 顺序执行无并发, 样本独立。
+Assistant: Strata does not self-report prompt_eval_duration, so wall-clock TTFT is the prefill proxy.
+2026-10-09 Strata IQ2_XS latency bench: 4K/128 x3 + 32K/512 x1, unique salts, cold confirmed via cached_tokens=0
+
+--- turn 0008 ---
+用户: 跑下 x99 基础时延测试, 参考格式 4K/128 三轮加 32K/512 一轮, 输出 mean/median。
+Assistant: decode throughput at 32K context usually dips versus 4K because KV reads grow.
+ttft = first_nonempty_delta_time
+pre = prompt_tokens / ttft
+dec = (completion_tokens - 1) / (wall - ttft)
+
+--- turn 0009 ---
+用户: Strata IQ2_XS 时延基准, 用 wall clock, TTFT 当 prefill。
+Assistant: decode throughput at 32K context usually dips versus 4K because KV reads grow.
+ttft = first_nonempty_delta_time
+pre = prompt_tokens / ttft
+dec = (completion_tokens - 1) / (wall - ttft)
+
+--- turn 0010 ---
+用户: 每次 run 用唯一 salt 前缀, 确认 cached_tokens 是 0 才算真冷测。
+Assistant: decode throughput at 32K context usually dips versus 4K because KV reads grow.
+usage = final_chunk[&#x27;usage&#x27;]
+cached = usage[&#x27;prompt_tokens_details&#x27;][&#x27;cached_tokens&#x27;]
+assert cached == 0, &#x27;warm prefix contaminated run&#x27;
+
+--- turn 0011 ---
+用户: 双 2080 Ti, Qwen3.8-Flash-Next IQ2_XS, 顺序执行无并发, 样本独立。
+Assistant: decode throughput at 32K context usually dips versus 4K because KV reads grow.
+usage = final_chunk[&#x27;usage&#x27;]
+cached = usage[&#x27;prompt_tokens_details&#x27;][&#x27;cached_tokens&#x27;]
+assert cached == 0, &#x27;warm prefix contaminated run&#x27;
+
+--- turn 0012 ---
+用户: 跑下 x99 基础时延测试, 参考格式 4K/128 三轮加 32K/512 一轮, 输出 mean/median。
+Assistant: Sequential runs, no concurrency: each run fully drains before next starts.
+stats = {&#x27;prefill&#x27;: [p[&#x27;pre&#x27;] for p in runs], &#x27;decode&#x27;: [p[&#x27;dec&#x27;] for p in runs]}
+print(f&#x27;{statistics.mean(v):.2f} / {statistics.median(v):.2f}&#x27;)
+
+--- turn 0013 ---
+用户: Strata IQ2_XS 时延基准, 用 wall clock, TTFT 当 prefill。
+Assistant: Sequential runs, no concurrency: each run fully drains before next starts.
+stats = {&#x27;prefill&#x27;: [p[&#x27;pre&#x27;] for p in runs], &#x27;decode&#x27;: [p[&#x27;dec&#x27;] for p in runs]}
+print(f&#x27;{statistics.mean(v):.2f} / {statistics.median(v):.2f}&#x27;)
+
+--- turn 0014 ---
+用户: 每次 run 用唯一 salt 前缀, 确认 cached_tokens 是 0 才算真冷测。
+Assistant: Sequential runs, no concurrency: each run fully drains before next starts.
+2026-10-09 Strata IQ2_XS latency bench: 4K/128 x3 + 32K/512 x1, unique salts, cold confirmed via cached_tokens=0
+
+--- turn 0015 ---
+用户: 双 2080 Ti, Qwen3.8-Flash-Next IQ2_XS, 顺序执行无并发, 样本独立。
+Assistant: Sequential runs, no concurrency: each run fully drains before next starts.
+2026-10-09 Strata IQ2_XS latency bench: 4K/128 x3 + 32K/512 x1, unique salts, cold confirmed via cached_tokens=0
+
+--- turn 0016 ---
+用户: 跑下 x99 基础时延测试, 参考格式 4K/128 三轮加 32K/512 一轮, 输出 mean/median。
+Assistant: The unique per-run salt defeats the Strata prefix cache by design; cached_tokens must read zero.
+ttft = first_nonempty_delta_time
+pre = prompt_tokens / ttft
+dec = (completion_tokens - 1) / (wall - ttft)
+
+--- turn 0017 ---
+用户: Strata IQ2_XS 时延基准, 用 wall clock, TTFT 当 prefill。
+Assistant: The unique per-run salt defeats the Strata prefix cache by design; cached_tokens must read zero.
+ttft = first_nonempty_delta_time
+pre = prompt_tokens / ttft
+dec = (completion_tokens - 1) / (wall - ttft)
+
+--- turn 0018 ---
+用户: 每次 run 用唯一 salt 前缀, 确认 cached_tokens 是 0 才算真冷测。
+Assistant: The unique per-run salt defeats the Strata prefix cache by design; cached_tokens must read zero.
+usage = final_chunk[&#x27;usage&#x27;]
+cached = usage[&#x27;prompt_tokens_details&#x27;][&#x27;cached_tokens&#x27;]
+assert cached == 0, &#x27;warm prefix contaminated run&#x27;
+
+--- turn 0019 ---
+用户: 双 2080 Ti, Qwen3.8-Flash-Next IQ2_XS, 顺序执行无并发, 样本独立。
+Assistant: The unique per-run salt defeats the Strata prefix cache by design; cached_tokens must read zero.
+usage = final_chunk[&#x27;usage&#x27;]
+cached = usage[&#x27;prompt_tokens_details&#x27;][&#x27;cached_tokens&#x27;]
+assert cached == 0, &#x27;warm prefix contaminated run&#x27;
+
+--- turn 0020 ---
+用户: 跑下 x99 基础时延测试, 参考格式 4K/128 三轮加 32K/512 一轮, 输出 mean/median。
+Assistant: Strata does not self-report prompt_eval_duration, so wall-clock TTFT is the prefill proxy.
+stats = {&#x27;prefill&#x27;: [p[&#x27;pre&#x27;] for p in runs], &#x27;decode&#x27;: [p[&#x27;dec&#x27;] for p in runs]}
+print(f&#x27;{statistics.mean(v):.2f} / {statistics.median(v):.2f}&#x27;)
+
+--- turn 0021 ---
+用户: Strata IQ2_XS 时延基准, 用 wall clock, TTFT 当 prefill。
+Assistant: Strata does not self-report prompt_eval_duration, so wall-clock TTFT is the prefill proxy.
+stats = {&#x27;prefill&#x27;: [p[&#x27;pre&#x27;] for p in runs], &#x27;decode&#x27;: [p[&#x27;dec&#x27;] for p in runs]}
+print(f&#x27;{statistics.mean(v):.2f} / {statistics.median(v):.2f}&#x27;)
+
+--- turn 0022 ---
+用户: 每次 run 用唯一 salt 前缀, 确认 cached_tokens 是 0 才算真冷测。
+Assistant: Strata does not self-report prompt_eval_duration, so wall-clock TTFT is the prefill proxy.
+2026-10-09 Strata IQ2_XS latency bench: 4K/128 x3 + 32K/512 x1, unique salts, cold confirmed via cached_tokens=0
+
+--- turn 0023 ---
+用户: 双 2080 Ti, Qwen3.8-Flash-Next IQ2_XS, 顺序执行无并发, 样本独立。
+Assistant: Strata does not self-report prompt_eval_duration, so wall-clock TTFT is the prefill proxy.
+2026-10-09 Strata IQ2_XS latency bench: 4K/128 x3 + 32K/512 x1, unique salts, cold confirmed via cached_tokens=0
+
+--- turn 0024 ---
+用户: 跑下 x99 基础时延测试, 参考格式 4K/128 三轮加 32K/512 一轮, 输出 mean/median。
+Assistant: decode throughput at 32K context usually dips versus 4K because KV reads grow.
+ttft = first_nonempty_delta_time
+pre = prompt_tokens / ttft
+dec = (completion_tokens - 1) / (wall - ttft)
+
+--- turn 0025 ---
+用户: Strata IQ2_XS 时延基准, 用 wall clock, TTFT 当 prefill。
+Assistant: decode throughput at 32K context usually dips versus 4K because KV reads grow.
+ttft = first_nonempty_delta_time
+pre = prompt_tokens / ttft
+dec = (completion_tokens - 1) / (wall - ttft)
+
+--- turn 0026 ---
+用户: 每次 run 用唯一 salt 前缀, 确认 cached_tokens 是 0 才算真冷测。
+Assistant: decode throughput at 32K context usually dips versus 4K because KV reads grow.
+usage = final_chunk[&#x27;usage&#x27;]
+cached = usage[&#x27;prompt_tokens_details&#x27;][&#x27;cached_tokens&#x27;]
+assert cached == 0, &#x27;warm prefix contaminated run&#x27;
+
+--- turn 0027 ---
+用户: 双 2080 Ti, Qwen3.8-Flash-Next IQ2_XS, 顺序执行无并发, 样本独立。
+Assistant: decode throughput at 32K context usually dips versus 4K because KV reads grow.
+usage = final_chunk[&#x27;usage&#x27;]
+cached = usage[&#x27;prompt_tokens_details&#x27;][&#x27;cached_tokens&#x27;]
+assert cached == 0, &#x27;warm prefix contaminated run&#x27;
+
+--- turn 0028 ---
+用户: 跑下 x99 基础时延测试, 参考格式 4K/128 三轮加 32K/512 一轮, 输出 mean/median。
+Assistant: Sequential runs, no concurrency: each run fully drains before next starts.
+stats = {&#x27;prefill&#x27;: [p[&#x27;pre&#x27;] for p in runs], &#x27;decode&#x27;: [p[&#x27;dec&#x27;] for p in runs]}
+print(f&#x27;{statistics.mean(v):.2f} / {statistics.median(v):.2f}&#x27;)
+
+--- turn 0029 ---
+用户: Strata IQ2_XS 时延基准, 用 wall clock, TTFT 当 prefill。
+Assistant: Sequential runs, no concurrency: each run fully drains before next starts.
+stats = {&#x27;prefill&#x27;: [p[&#x27;pre&#x27;] for p in runs], &#x27;decode&#x27;: [p[&#x27;dec&#x27;] for p in runs]}
+print(f&#x27;{statistics.mean(v):.2f} / {statistics.median(v):.2f}&#x27;)
+
+--- turn 0030 ---
+用户: 每次 run 用唯一 salt 前缀, 确认 cached_tokens 是 0 才算真冷测。
+Assistant: Sequential runs, no concurrency: each run fully drains before next starts.
+2026-10-09 Strata IQ2_XS latency bench: 4K/128 x3 + 32K/512 x1, unique salts, cold confirmed via cached_tokens=0
+
+--- turn 0031 ---
+用户: 双 2080 Ti, Qwen3.8-Flash-Next IQ2_XS, 顺序执行无并发, 样本独立。
+Assistant: Sequential runs, no concurrency: each run fully drains before next starts.
+2026-10-09 Strata IQ2_XS latency bench: 4K/128 x3 + 32K/512 x1, unique salts, cold confirmed via cached_tokens=0
+
+--- turn 0032 ---
+用户: 跑下 x99 基础时延测试, 参考格式 4K/128 三轮加 32K/512 一轮, 输出 mean/median。
+Assistant: The unique per-run salt defeats the Strata prefix cache by design; cached_tokens must read zero.
+ttft = first_nonempty_delta_time
+pre = prompt_tokens / ttft
+dec = (completion_tokens - 1) / (wall - ttft)
+
+--- turn 0033 ---
+用户: Strata IQ2_XS 时延基准, 用 wall clock, TTFT 当 prefill。
+Assistant: The unique per-run salt defeats the Strata prefix cache by design; cached_tokens must read zero.
+ttft = first_nonempty_delta_time
+pre = prompt_tokens / ttft
+dec = (completion_tokens - 1) / (wall - ttft)
+
+--- turn 0034 ---
+用户: 每次 run 用唯一 salt 前缀, 确认 cached_tokens 是 0 才算真冷测。
+Assistant: The unique per-run salt defeats the Strata prefix cache by design; cached_tokens must read zero.
+usage = final_chunk[&#x27;usage&#x27;]
+cached = usage[&#x27;prompt_tokens_details&#x27;][&#x27;cached_tokens&#x27;]
+assert cached == 0, &#x27;warm prefix contaminated run&#x27;
+
+--- turn 0035 ---
+用户: 双 2080 Ti, Qwen3.8-Flash-Next IQ2_XS, 顺序执行无并发, 样本独立。
+Assistant: The unique per-run salt defeats the Strata prefix cache by design; cached_tokens must read zero.
+usage = final_chunk[&#x27;usage&#x27;]
+cached = usage[&#x27;prompt_tokens_details&#x27;][&#x27;cached_tokens&#x27;]
+assert cached == 0, &#x27;warm prefix contaminated run&#x27;
+
+--- turn 0036 ---
+用户: 跑下 x99 基础时延测试, 参考格式 4K/128 三轮加 32K/512 一轮, 输出 mean/median。
+Assistant: Strata does not self-report prompt_eval_duration, so wall-clock TTFT is the prefill proxy.
+stats = {&#x27;prefill&#x27;: [p[&#x27;pre&#x27;] for p in runs], &#x27;decode&#x27;: [p[&#x27;dec&#x27;] for p in runs]}
+print(f&#x27;{statistics.mean(v):.2f} / {statistics.median(v):.2f}&#x27;)
+
+--- turn 0037 ---
+用户: Strata IQ2_XS 时延基准, 用 wall clock, TTFT 当 prefill。
+Assistant: Strata does not self-report prompt_eval_duration, so wall-clock TTFT is the prefill proxy.
+stats = {&#x27;prefill&#x27;: [p[&#x27;pre&#x27;] for p in runs], &#x27;decode&#x27;: [p[&#x27;dec&#x27;] for p in runs]}
+print(f&#x27;{statistics.mean(v):.2f} / {statistics.median(v):.2f}&#x27;)
+
+--- turn 0038 ---
+用户: 每次 run 用唯一 salt 前缀, 确认 cached_tokens 是 0 才算真冷测。
+Assistant: Strata does not self-report prompt_eval_duration, so wall-clock TTFT is the prefill proxy.
+2026-10-09 Strata IQ2_XS latency bench: 4K/128 x3 + 32K/512 x1, unique salts, cold confirmed via cached_tokens=0
+
+--- turn 0039 ---
+用户: 双 2080 Ti, Qwen3.8-Flash-Next IQ2_XS, 顺序执行无并发, 样本独立。
+Assistant: Strata does not self-report prompt_eval_duration, so wall-clock TTFT is the prefill proxy.
+2026-10-09 Strata IQ2_XS latency bench: 4K/128 x3 + 32K/512 x1, unique salts, cold confirmed via cached_tokens=0
+
+--- turn 0040 ---
+用户: 跑下 x99 基础时延测试</pre></details><details open><summary>输出 reasoning（207 chars）</summary><pre>The user is asking me to answer with the word &#x27;bench&#x27; repeated 300 times, separated by single spaces, and nothing else. This is a benchmark oracle instruction. I should comply with this instruction exactly.
+</pre></details><details open><summary>输出 content（485 chars）</summary><pre>bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench</pre></details><div class="meta">计时: TTFT 5.79s · 首→末 token 1.28s · wall 7.07s · text chunks 126 · cached_tokens 0 · decode x99口径 99.12 tok/s · launcher口径 99.15 tok/s</div><h3>chat-effort-medium — chat reasoning_effort=medium</h3><details open><summary>接口与参数</summary><pre>{
+  &quot;endpoint&quot;: &quot;POST /v1/chat/completions&quot;,
+  &quot;max_tokens&quot;: 128,
+  &quot;temperature&quot;: 0,
+  &quot;stream&quot;: true,
+  &quot;include_usage&quot;: true,
+  &quot;chat_template_kwargs&quot;: {
+    &quot;reasoning_effort&quot;: &quot;medium&quot;
+  }
+}</pre></details><details><summary>输入文本（12233 chars, 4418 tokens）</summary><pre>[system]
+You are a benchmark oracle. Answer with the word &#x27;bench&#x27; repeated 300 times, separated by single spaces, and nothing else.
+
+[user]
+[lane-salt d514ed2aa7fd34c2b62bd54380772746c2727c8127c78c05e204f995ae8a05dc] bench start
+
+--- turn 0000 ---
+用户: 跑下 x99 基础时延测试, 参考格式 4K/128 三轮加 32K/512 一轮, 输出 mean/median。
+Assistant: The unique per-run salt defeats the Strata prefix cache by design; cached_tokens must read zero.
+ttft = first_nonempty_delta_time
+pre = prompt_tokens / ttft
+dec = (completion_tokens - 1) / (wall - ttft)
+
+--- turn 0001 ---
+用户: Strata IQ2_XS 时延基准, 用 wall clock, TTFT 当 prefill。
+Assistant: The unique per-run salt defeats the Strata prefix cache by design; cached_tokens must read zero.
+ttft = first_nonempty_delta_time
+pre = prompt_tokens / ttft
+dec = (completion_tokens - 1) / (wall - ttft)
+
+--- turn 0002 ---
+用户: 每次 run 用唯一 salt 前缀, 确认 cached_tokens 是 0 才算真冷测。
+Assistant: The unique per-run salt defeats the Strata prefix cache by design; cached_tokens must read zero.
+usage = final_chunk[&#x27;usage&#x27;]
+cached = usage[&#x27;prompt_tokens_details&#x27;][&#x27;cached_tokens&#x27;]
+assert cached == 0, &#x27;warm prefix contaminated run&#x27;
+
+--- turn 0003 ---
+用户: 双 2080 Ti, Qwen3.8-Flash-Next IQ2_XS, 顺序执行无并发, 样本独立。
+Assistant: The unique per-run salt defeats the Strata prefix cache by design; cached_tokens must read zero.
+usage = final_chunk[&#x27;usage&#x27;]
+cached = usage[&#x27;prompt_tokens_details&#x27;][&#x27;cached_tokens&#x27;]
+assert cached == 0, &#x27;warm prefix contaminated run&#x27;
+
+--- turn 0004 ---
+用户: 跑下 x99 基础时延测试, 参考格式 4K/128 三轮加 32K/512 一轮, 输出 mean/median。
+Assistant: Strata does not self-report prompt_eval_duration, so wall-clock TTFT is the prefill proxy.
+stats = {&#x27;prefill&#x27;: [p[&#x27;pre&#x27;] for p in runs], &#x27;decode&#x27;: [p[&#x27;dec&#x27;] for p in runs]}
+print(f&#x27;{statistics.mean(v):.2f} / {statistics.median(v):.2f}&#x27;)
+
+--- turn 0005 ---
+用户: Strata IQ2_XS 时延基准, 用 wall clock, TTFT 当 prefill。
+Assistant: Strata does not self-report prompt_eval_duration, so wall-clock TTFT is the prefill proxy.
+stats = {&#x27;prefill&#x27;: [p[&#x27;pre&#x27;] for p in runs], &#x27;decode&#x27;: [p[&#x27;dec&#x27;] for p in runs]}
+print(f&#x27;{statistics.mean(v):.2f} / {statistics.median(v):.2f}&#x27;)
+
+--- turn 0006 ---
+用户: 每次 run 用唯一 salt 前缀, 确认 cached_tokens 是 0 才算真冷测。
+Assistant: Strata does not self-report prompt_eval_duration, so wall-clock TTFT is the prefill proxy.
+2026-10-09 Strata IQ2_XS latency bench: 4K/128 x3 + 32K/512 x1, unique salts, cold confirmed via cached_tokens=0
+
+--- turn 0007 ---
+用户: 双 2080 Ti, Qwen3.8-Flash-Next IQ2_XS, 顺序执行无并发, 样本独立。
+Assistant: Strata does not self-report prompt_eval_duration, so wall-clock TTFT is the prefill proxy.
+2026-10-09 Strata IQ2_XS latency bench: 4K/128 x3 + 32K/512 x1, unique salts, cold confirmed via cached_tokens=0
+
+--- turn 0008 ---
+用户: 跑下 x99 基础时延测试, 参考格式 4K/128 三轮加 32K/512 一轮, 输出 mean/median。
+Assistant: decode throughput at 32K context usually dips versus 4K because KV reads grow.
+ttft = first_nonempty_delta_time
+pre = prompt_tokens / ttft
+dec = (completion_tokens - 1) / (wall - ttft)
+
+--- turn 0009 ---
+用户: Strata IQ2_XS 时延基准, 用 wall clock, TTFT 当 prefill。
+Assistant: decode throughput at 32K context usually dips versus 4K because KV reads grow.
+ttft = first_nonempty_delta_time
+pre = prompt_tokens / ttft
+dec = (completion_tokens - 1) / (wall - ttft)
+
+--- turn 0010 ---
+用户: 每次 run 用唯一 salt 前缀, 确认 cached_tokens 是 0 才算真冷测。
+Assistant: decode throughput at 32K context usually dips versus 4K because KV reads grow.
+usage = final_chunk[&#x27;usage&#x27;]
+cached = usage[&#x27;prompt_tokens_details&#x27;][&#x27;cached_tokens&#x27;]
+assert cached == 0, &#x27;warm prefix contaminated run&#x27;
+
+--- turn 0011 ---
+用户: 双 2080 Ti, Qwen3.8-Flash-Next IQ2_XS, 顺序执行无并发, 样本独立。
+Assistant: decode throughput at 32K context usually dips versus 4K because KV reads grow.
+usage = final_chunk[&#x27;usage&#x27;]
+cached = usage[&#x27;prompt_tokens_details&#x27;][&#x27;cached_tokens&#x27;]
+assert cached == 0, &#x27;warm prefix contaminated run&#x27;
+
+--- turn 0012 ---
+用户: 跑下 x99 基础时延测试, 参考格式 4K/128 三轮加 32K/512 一轮, 输出 mean/median。
+Assistant: Sequential runs, no concurrency: each run fully drains before next starts.
+stats = {&#x27;prefill&#x27;: [p[&#x27;pre&#x27;] for p in runs], &#x27;decode&#x27;: [p[&#x27;dec&#x27;] for p in runs]}
+print(f&#x27;{statistics.mean(v):.2f} / {statistics.median(v):.2f}&#x27;)
+
+--- turn 0013 ---
+用户: Strata IQ2_XS 时延基准, 用 wall clock, TTFT 当 prefill。
+Assistant: Sequential runs, no concurrency: each run fully drains before next starts.
+stats = {&#x27;prefill&#x27;: [p[&#x27;pre&#x27;] for p in runs], &#x27;decode&#x27;: [p[&#x27;dec&#x27;] for p in runs]}
+print(f&#x27;{statistics.mean(v):.2f} / {statistics.median(v):.2f}&#x27;)
+
+--- turn 0014 ---
+用户: 每次 run 用唯一 salt 前缀, 确认 cached_tokens 是 0 才算真冷测。
+Assistant: Sequential runs, no concurrency: each run fully drains before next starts.
+2026-10-09 Strata IQ2_XS latency bench: 4K/128 x3 + 32K/512 x1, unique salts, cold confirmed via cached_tokens=0
+
+--- turn 0015 ---
+用户: 双 2080 Ti, Qwen3.8-Flash-Next IQ2_XS, 顺序执行无并发, 样本独立。
+Assistant: Sequential runs, no concurrency: each run fully drains before next starts.
+2026-10-09 Strata IQ2_XS latency bench: 4K/128 x3 + 32K/512 x1, unique salts, cold confirmed via cached_tokens=0
+
+--- turn 0016 ---
+用户: 跑下 x99 基础时延测试, 参考格式 4K/128 三轮加 32K/512 一轮, 输出 mean/median。
+Assistant: The unique per-run salt defeats the Strata prefix cache by design; cached_tokens must read zero.
+ttft = first_nonempty_delta_time
+pre = prompt_tokens / ttft
+dec = (completion_tokens - 1) / (wall - ttft)
+
+--- turn 0017 ---
+用户: Strata IQ2_XS 时延基准, 用 wall clock, TTFT 当 prefill。
+Assistant: The unique per-run salt defeats the Strata prefix cache by design; cached_tokens must read zero.
+ttft = first_nonempty_delta_time
+pre = prompt_tokens / ttft
+dec = (completion_tokens - 1) / (wall - ttft)
+
+--- turn 0018 ---
+用户: 每次 run 用唯一 salt 前缀, 确认 cached_tokens 是 0 才算真冷测。
+Assistant: The unique per-run salt defeats the Strata prefix cache by design; cached_tokens must read zero.
+usage = final_chunk[&#x27;usage&#x27;]
+cached = usage[&#x27;prompt_tokens_details&#x27;][&#x27;cached_tokens&#x27;]
+assert cached == 0, &#x27;warm prefix contaminated run&#x27;
+
+--- turn 0019 ---
+用户: 双 2080 Ti, Qwen3.8-Flash-Next IQ2_XS, 顺序执行无并发, 样本独立。
+Assistant: The unique per-run salt defeats the Strata prefix cache by design; cached_tokens must read zero.
+usage = final_chunk[&#x27;usage&#x27;]
+cached = usage[&#x27;prompt_tokens_details&#x27;][&#x27;cached_tokens&#x27;]
+assert cached == 0, &#x27;warm prefix contaminated run&#x27;
+
+--- turn 0020 ---
+用户: 跑下 x99 基础时延测试, 参考格式 4K/128 三轮加 32K/512 一轮, 输出 mean/median。
+Assistant: Strata does not self-report prompt_eval_duration, so wall-clock TTFT is the prefill proxy.
+stats = {&#x27;prefill&#x27;: [p[&#x27;pre&#x27;] for p in runs], &#x27;decode&#x27;: [p[&#x27;dec&#x27;] for p in runs]}
+print(f&#x27;{statistics.mean(v):.2f} / {statistics.median(v):.2f}&#x27;)
+
+--- turn 0021 ---
+用户: Strata IQ2_XS 时延基准, 用 wall clock, TTFT 当 prefill。
+Assistant: Strata does not self-report prompt_eval_duration, so wall-clock TTFT is the prefill proxy.
+stats = {&#x27;prefill&#x27;: [p[&#x27;pre&#x27;] for p in runs], &#x27;decode&#x27;: [p[&#x27;dec&#x27;] for p in runs]}
+print(f&#x27;{statistics.mean(v):.2f} / {statistics.median(v):.2f}&#x27;)
+
+--- turn 0022 ---
+用户: 每次 run 用唯一 salt 前缀, 确认 cached_tokens 是 0 才算真冷测。
+Assistant: Strata does not self-report prompt_eval_duration, so wall-clock TTFT is the prefill proxy.
+2026-10-09 Strata IQ2_XS latency bench: 4K/128 x3 + 32K/512 x1, unique salts, cold confirmed via cached_tokens=0
+
+--- turn 0023 ---
+用户: 双 2080 Ti, Qwen3.8-Flash-Next IQ2_XS, 顺序执行无并发, 样本独立。
+Assistant: Strata does not self-report prompt_eval_duration, so wall-clock TTFT is the prefill proxy.
+2026-10-09 Strata IQ2_XS latency bench: 4K/128 x3 + 32K/512 x1, unique salts, cold confirmed via cached_tokens=0
+
+--- turn 0024 ---
+用户: 跑下 x99 基础时延测试, 参考格式 4K/128 三轮加 32K/512 一轮, 输出 mean/median。
+Assistant: decode throughput at 32K context usually dips versus 4K because KV reads grow.
+ttft = first_nonempty_delta_time
+pre = prompt_tokens / ttft
+dec = (completion_tokens - 1) / (wall - ttft)
+
+--- turn 0025 ---
+用户: Strata IQ2_XS 时延基准, 用 wall clock, TTFT 当 prefill。
+Assistant: decode throughput at 32K context usually dips versus 4K because KV reads grow.
+ttft = first_nonempty_delta_time
+pre = prompt_tokens / ttft
+dec = (completion_tokens - 1) / (wall - ttft)
+
+--- turn 0026 ---
+用户: 每次 run 用唯一 salt 前缀, 确认 cached_tokens 是 0 才算真冷测。
+Assistant: decode throughput at 32K context usually dips versus 4K because KV reads grow.
+usage = final_chunk[&#x27;usage&#x27;]
+cached = usage[&#x27;prompt_tokens_details&#x27;][&#x27;cached_tokens&#x27;]
+assert cached == 0, &#x27;warm prefix contaminated run&#x27;
+
+--- turn 0027 ---
+用户: 双 2080 Ti, Qwen3.8-Flash-Next IQ2_XS, 顺序执行无并发, 样本独立。
+Assistant: decode throughput at 32K context usually dips versus 4K because KV reads grow.
+usage = final_chunk[&#x27;usage&#x27;]
+cached = usage[&#x27;prompt_tokens_details&#x27;][&#x27;cached_tokens&#x27;]
+assert cached == 0, &#x27;warm prefix contaminated run&#x27;
+
+--- turn 0028 ---
+用户: 跑下 x99 基础时延测试, 参考格式 4K/128 三轮加 32K/512 一轮, 输出 mean/median。
+Assistant: Sequential runs, no concurrency: each run fully drains before next starts.
+stats = {&#x27;prefill&#x27;: [p[&#x27;pre&#x27;] for p in runs], &#x27;decode&#x27;: [p[&#x27;dec&#x27;] for p in runs]}
+print(f&#x27;{statistics.mean(v):.2f} / {statistics.median(v):.2f}&#x27;)
+
+--- turn 0029 ---
+用户: Strata IQ2_XS 时延基准, 用 wall clock, TTFT 当 prefill。
+Assistant: Sequential runs, no concurrency: each run fully drains before next starts.
+stats = {&#x27;prefill&#x27;: [p[&#x27;pre&#x27;] for p in runs], &#x27;decode&#x27;: [p[&#x27;dec&#x27;] for p in runs]}
+print(f&#x27;{statistics.mean(v):.2f} / {statistics.median(v):.2f}&#x27;)
+
+--- turn 0030 ---
+用户: 每次 run 用唯一 salt 前缀, 确认 cached_tokens 是 0 才算真冷测。
+Assistant: Sequential runs, no concurrency: each run fully drains before next starts.
+2026-10-09 Strata IQ2_XS latency bench: 4K/128 x3 + 32K/512 x1, unique salts, cold confirmed via cached_tokens=0
+
+--- turn 0031 ---
+用户: 双 2080 Ti, Qwen3.8-Flash-Next IQ2_XS, 顺序执行无并发, 样本独立。
+Assistant: Sequential runs, no concurrency: each run fully drains before next starts.
+2026-10-09 Strata IQ2_XS latency bench: 4K/128 x3 + 32K/512 x1, unique salts, cold confirmed via cached_tokens=0
+
+--- turn 0032 ---
+用户: 跑下 x99 基础时延测试, 参考格式 4K/128 三轮加 32K/512 一轮, 输出 mean/median。
+Assistant: The unique per-run salt defeats the Strata prefix cache by design; cached_tokens must read zero.
+ttft = first_nonempty_delta_time
+pre = prompt_tokens / ttft
+dec = (completion_tokens - 1) / (wall - ttft)
+
+--- turn 0033 ---
+用户: Strata IQ2_XS 时延基准, 用 wall clock, TTFT 当 prefill。
+Assistant: The unique per-run salt defeats the Strata prefix cache by design; cached_tokens must read zero.
+ttft = first_nonempty_delta_time
+pre = prompt_tokens / ttft
+dec = (completion_tokens - 1) / (wall - ttft)
+
+--- turn 0034 ---
+用户: 每次 run 用唯一 salt 前缀, 确认 cached_tokens 是 0 才算真冷测。
+Assistant: The unique per-run salt defeats the Strata prefix cache by design; cached_tokens must read zero.
+usage = final_chunk[&#x27;usage&#x27;]
+cached = usage[&#x27;prompt_tokens_details&#x27;][&#x27;cached_tokens&#x27;]
+assert cached == 0, &#x27;warm prefix contaminated run&#x27;
+
+--- turn 0035 ---
+用户: 双 2080 Ti, Qwen3.8-Flash-Next IQ2_XS, 顺序执行无并发, 样本独立。
+Assistant: The unique per-run salt defeats the Strata prefix cache by design; cached_tokens must read zero.
+usage = final_chunk[&#x27;usage&#x27;]
+cached = usage[&#x27;prompt_tokens_details&#x27;][&#x27;cached_tokens&#x27;]
+assert cached == 0, &#x27;warm prefix contaminated run&#x27;
+
+--- turn 0036 ---
+用户: 跑下 x99 基础时延测试, 参考格式 4K/128 三轮加 32K/512 一轮, 输出 mean/median。
+Assistant: Strata does not self-report prompt_eval_duration, so wall-clock TTFT is the prefill proxy.
+stats = {&#x27;prefill&#x27;: [p[&#x27;pre&#x27;] for p in runs], &#x27;decode&#x27;: [p[&#x27;dec&#x27;] for p in runs]}
+print(f&#x27;{statistics.mean(v):.2f} / {statistics.median(v):.2f}&#x27;)
+
+--- turn 0037 ---
+用户: Strata IQ2_XS 时延基准, 用 wall clock, TTFT 当 prefill。
+Assistant: Strata does not self-report prompt_eval_duration, so wall-clock TTFT is the prefill proxy.
+stats = {&#x27;prefill&#x27;: [p[&#x27;pre&#x27;] for p in runs], &#x27;decode&#x27;: [p[&#x27;dec&#x27;] for p in runs]}
+print(f&#x27;{statistics.mean(v):.2f} / {statistics.median(v):.2f}&#x27;)
+
+--- turn 0038 ---
+用户: 每次 run 用唯一 salt 前缀, 确认 cached_tokens 是 0 才算真冷测。
+Assistant: Strata does not self-report prompt_eval_duration, so wall-clock TTFT is the prefill proxy.
+2026-10-09 Strata IQ2_XS latency bench: 4K/128 x3 + 32K/512 x1, unique salts, cold confirmed via cached_tokens=0
+
+--- turn 0039 ---
+用户: 双 2080 Ti, Qwen3.8-Flash-Next IQ2_XS, 顺序执行无并发, 样本独立。
+Assistant: Strata does not self-report prompt_eval_duration, so wall-clock TTFT is the prefill proxy.
+2026-10-09 Strata IQ2_XS latency bench: 4K/128 x3 + 32K/512 x1, unique salts, cold confirmed via cached_tokens=0
+
+--- turn 0040 ---
+用户: 跑下 x99 基础时延测试</pre></details><details open><summary>输出 reasoning（281 chars）</summary><pre>The user is asking me to respond as a benchmark oracle. The instruction says: &quot;Answer with the word &#x27;bench&#x27; repeated 300 times, separated by single spaces, and nothing else.&quot;
+
+I need to output exactly 300 instances of the word &quot;bench&quot; separated by single spaces, and nothing else.
+</pre></details><details open><summary>输出 content（353 chars）</summary><pre>bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench bench</pre></details><div class="meta">计时: TTFT 5.74s · 首→末 token 1.31s · wall 7.05s · text chunks 126 · cached_tokens 0 · decode x99口径 97.14 tok/s · launcher口径 97.18 tok/s</div><h3>chat-effort-xhigh — chat reasoning_effort=xhigh</h3><details open><summary>接口与参数</summary><pre>{
+  &quot;endpoint&quot;: &quot;POST /v1/chat/completions&quot;,
+  &quot;max_tokens&quot;: 128,
+  &quot;temperature&quot;: 0,
+  &quot;stream&quot;: true,
+  &quot;include_usage&quot;: true,
+  &quot;chat_template_kwargs&quot;: {
+    &quot;reasoning_effort&quot;: &quot;xhigh&quot;
+  }
+}</pre></details><details><summary>输入文本（12233 chars, 4457 tokens）</summary><pre>[system]
+You are a benchmark oracle. Answer with the word &#x27;bench&#x27; repeated 300 times, separated by single spaces, and nothing else.
+
+[user]
+[lane-salt 84b5c98260e1c3139ad8e28736907376662eb91318ddd0d64649ba045e2d78ef] bench start
+
+--- turn 0000 ---
+用户: 跑下 x99 基础时延测试, 参考格式 4K/128 三轮加 32K/512 一轮, 输出 mean/median。
+Assistant: The unique per-run salt defeats the Strata prefix cache by design; cached_tokens must read zero.
+ttft = first_nonempty_delta_time
+pre = prompt_tokens / ttft
+dec = (completion_tokens - 1) / (wall - ttft)
+
+--- turn 0001 ---
+用户: Strata IQ2_XS 时延基准, 用 wall clock, TTFT 当 prefill。
+Assistant: The unique per-run salt defeats the Strata prefix cache by design; cached_tokens must read zero.
+ttft = first_nonempty_delta_time
+pre = prompt_tokens / ttft
+dec = (completion_tokens - 1) / (wall - ttft)
+
+--- turn 0002 ---
+用户: 每次 run 用唯一 salt 前缀, 确认 cached_tokens 是 0 才算真冷测。
+Assistant: The unique per-run salt defeats the Strata prefix cache by design; cached_tokens must read zero.
+usage = final_chunk[&#x27;usage&#x27;]
+cached = usage[&#x27;prompt_tokens_details&#x27;][&#x27;cached_tokens&#x27;]
+assert cached == 0, &#x27;warm prefix contaminated run&#x27;
+
+--- turn 0003 ---
+用户: 双 2080 Ti, Qwen3.8-Flash-Next IQ2_XS, 顺序执行无并发, 样本独立。
+Assistant: The unique per-run salt defeats the Strata prefix cache by design; cached_tokens must read zero.
+usage = final_chunk[&#x27;usage&#x27;]
+cached = usage[&#x27;prompt_tokens_details&#x27;][&#x27;cached_tokens&#x27;]
+assert cached == 0, &#x27;warm prefix contaminated run&#x27;
+
+--- turn 0004 ---
+用户: 跑下 x99 基础时延测试, 参考格式 4K/128 三轮加 32K/512 一轮, 输出 mean/median。
+Assistant: Strata does not self-report prompt_eval_duration, so wall-clock TTFT is the prefill proxy.
+stats = {&#x27;prefill&#x27;: [p[&#x27;pre&#x27;] for p in runs], &#x27;decode&#x27;: [p[&#x27;dec&#x27;] for p in runs]}
+print(f&#x27;{statistics.mean(v):.2f} / {statistics.median(v):.2f}&#x27;)
+
+--- turn 0005 ---
+用户: Strata IQ2_XS 时延基准, 用 wall clock, TTFT 当 prefill。
+Assistant: Strata does not self-report prompt_eval_duration, so wall-clock TTFT is the prefill proxy.
+stats = {&#x27;prefill&#x27;: [p[&#x27;pre&#x27;] for p in runs], &#x27;decode&#x27;: [p[&#x27;dec&#x27;] for p in runs]}
+print(f&#x27;{statistics.mean(v):.2f} / {statistics.median(v):.2f}&#x27;)
+
+--- turn 0006 ---
+用户: 每次 run 用唯一 salt 前缀, 确认 cached_tokens 是 0 才算真冷测。
+Assistant: Strata does not self-report prompt_eval_duration, so wall-clock TTFT is the prefill proxy.
+2026-10-09 Strata IQ2_XS latency bench: 4K/128 x3 + 32K/512 x1, unique salts, cold confirmed via cached_tokens=0
+
+--- turn 0007 ---
+用户: 双 2080 Ti, Qwen3.8-Flash-Next IQ2_XS, 顺序执行无并发, 样本独立。
+Assistant: Strata does not self-report prompt_eval_duration, so wall-clock TTFT is the prefill proxy.
+2026-10-09 Strata IQ2_XS latency bench: 4K/128 x3 + 32K/512 x1, unique salts, cold confirmed via cached_tokens=0
+
+--- turn 0008 ---
+用户: 跑下 x99 基础时延测试, 参考格式 4K/128 三轮加 32K/512 一轮, 输出 mean/median。
+Assistant: decode throughput at 32K context usually dips versus 4K because KV reads grow.
+ttft = first_nonempty_delta_time
+pre = prompt_tokens / ttft
+dec = (completion_tokens - 1) / (wall - ttft)
+
+--- turn 0009 ---
+用户: Strata IQ2_XS 时延基准, 用 wall clock, TTFT 当 prefill。
+Assistant: decode throughput at 32K context usually dips versus 4K because KV reads grow.
+ttft = first_nonempty_delta_time
+pre = prompt_tokens / ttft
+dec = (completion_tokens - 1) / (wall - ttft)
+
+--- turn 0010 ---
+用户: 每次 run 用唯一 salt 前缀, 确认 cached_tokens 是 0 才算真冷测。
+Assistant: decode throughput at 32K context usually dips versus 4K because KV reads grow.
+usage = final_chunk[&#x27;usage&#x27;]
+cached = usage[&#x27;prompt_tokens_details&#x27;][&#x27;cached_tokens&#x27;]
+assert cached == 0, &#x27;warm prefix contaminated run&#x27;
+
+--- turn 0011 ---
+用户: 双 2080 Ti, Qwen3.8-Flash-Next IQ2_XS, 顺序执行无并发, 样本独立。
+Assistant: decode throughput at 32K context usually dips versus 4K because KV reads grow.
+usage = final_chunk[&#x27;usage&#x27;]
+cached = usage[&#x27;prompt_tokens_details&#x27;][&#x27;cached_tokens&#x27;]
+assert cached == 0, &#x27;warm prefix contaminated run&#x27;
+
+--- turn 0012 ---
+用户: 跑下 x99 基础时延测试, 参考格式 4K/128 三轮加 32K/512 一轮, 输出 mean/median。
+Assistant: Sequential runs, no concurrency: each run fully drains before next starts.
+stats = {&#x27;prefill&#x27;: [p[&#x27;pre&#x27;] for p in runs], &#x27;decode&#x27;: [p[&#x27;dec&#x27;] for p in runs]}
+print(f&#x27;{statistics.mean(v):.2f} / {statistics.median(v):.2f}&#x27;)
+
+--- turn 0013 ---
+用户: Strata IQ2_XS 时延基准, 用 wall clock, TTFT 当 prefill。
+Assistant: Sequential runs, no concurrency: each run fully drains before next starts.
+stats = {&#x27;prefill&#x27;: [p[&#x27;pre&#x27;] for p in runs], &#x27;decode&#x27;: [p[&#x27;dec&#x27;] for p in runs]}
+print(f&#x27;{statistics.mean(v):.2f} / {statistics.median(v):.2f}&#x27;)
+
+--- turn 0014 ---
+用户: 每次 run 用唯一 salt 前缀, 确认 cached_tokens 是 0 才算真冷测。
+Assistant: Sequential runs, no concurrency: each run fully drains before next starts.
+2026-10-09 Strata IQ2_XS latency bench: 4K/128 x3 + 32K/512 x1, unique salts, cold confirmed via cached_tokens=0
+
+--- turn 0015 ---
+用户: 双 2080 Ti, Qwen3.8-Flash-Next IQ2_XS, 顺序执行无并发, 样本独立。
+Assistant: Sequential runs, no concurrency: each run fully drains before next starts.
+2026-10-09 Strata IQ2_XS latency bench: 4K/128 x3 + 32K/512 x1, unique salts, cold confirmed via cached_tokens=0
+
+--- turn 0016 ---
+用户: 跑下 x99 基础时延测试, 参考格式 4K/128 三轮加 32K/512 一轮, 输出 mean/median。
+Assistant: The unique per-run salt defeats the Strata prefix cache by design; cached_tokens must read zero.
+ttft = first_nonempty_delta_time
+pre = prompt_tokens / ttft
+dec = (completion_tokens - 1) / (wall - ttft)
+
+--- turn 0017 ---
+用户: Strata IQ2_XS 时延基准, 用 wall clock, TTFT 当 prefill。
+Assistant: The unique per-run salt defeats the Strata prefix cache by design; cached_tokens must read zero.
+ttft = first_nonempty_delta_time
+pre = prompt_tokens / ttft
+dec = (completion_tokens - 1) / (wall - ttft)
+
+--- turn 0018 ---
+用户: 每次 run 用唯一 salt 前缀, 确认 cached_tokens 是 0 才算真冷测。
+Assistant: The unique per-run salt defeats the Strata prefix cache by design; cached_tokens must read zero.
+usage = final_chunk[&#x27;usage&#x27;]
+cached = usage[&#x27;prompt_tokens_details&#x27;][&#x27;cached_tokens&#x27;]
+assert cached == 0, &#x27;warm prefix contaminated run&#x27;
+
+--- turn 0019 ---
+用户: 双 2080 Ti, Qwen3.8-Flash-Next IQ2_XS, 顺序执行无并发, 样本独立。
+Assistant: The unique per-run salt defeats the Strata prefix cache by design; cached_tokens must read zero.
+usage = final_chunk[&#x27;usage&#x27;]
+cached = usage[&#x27;prompt_tokens_details&#x27;][&#x27;cached_tokens&#x27;]
+assert cached == 0, &#x27;warm prefix contaminated run&#x27;
+
+--- turn 0020 ---
+用户: 跑下 x99 基础时延测试, 参考格式 4K/128 三轮加 32K/512 一轮, 输出 mean/median。
+Assistant: Strata does not self-report prompt_eval_duration, so wall-clock TTFT is the prefill proxy.
+stats = {&#x27;prefill&#x27;: [p[&#x27;pre&#x27;] for p in runs], &#x27;decode&#x27;: [p[&#x27;dec&#x27;] for p in runs]}
+print(f&#x27;{statistics.mean(v):.2f} / {statistics.median(v):.2f}&#x27;)
+
+--- turn 0021 ---
+用户: Strata IQ2_XS 时延基准, 用 wall clock, TTFT 当 prefill。
+Assistant: Strata does not self-report prompt_eval_duration, so wall-clock TTFT is the prefill proxy.
+stats = {&#x27;prefill&#x27;: [p[&#x27;pre&#x27;] for p in runs], &#x27;decode&#x27;: [p[&#x27;dec&#x27;] for p in runs]}
+print(f&#x27;{statistics.mean(v):.2f} / {statistics.median(v):.2f}&#x27;)
+
+--- turn 0022 ---
+用户: 每次 run 用唯一 salt 前缀, 确认 cached_tokens 是 0 才算真冷测。
+Assistant: Strata does not self-report prompt_eval_duration, so wall-clock TTFT is the prefill proxy.
+2026-10-09 Strata IQ2_XS latency bench: 4K/128 x3 + 32K/512 x1, unique salts, cold confirmed via cached_tokens=0
+
+--- turn 0023 ---
+用户: 双 2080 Ti, Qwen3.8-Flash-Next IQ2_XS, 顺序执行无并发, 样本独立。
+Assistant: Strata does not self-report prompt_eval_duration, so wall-clock TTFT is the prefill proxy.
+2026-10-09 Strata IQ2_XS latency bench: 4K/128 x3 + 32K/512 x1, unique salts, cold confirmed via cached_tokens=0
+
+--- turn 0024 ---
+用户: 跑下 x99 基础时延测试, 参考格式 4K/128 三轮加 32K/512 一轮, 输出 mean/median。
+Assistant: decode throughput at 32K context usually dips versus 4K because KV reads grow.
+ttft = first_nonempty_delta_time
+pre = prompt_tokens / ttft
+dec = (completion_tokens - 1) / (wall - ttft)
+
+--- turn 0025 ---
+用户: Strata IQ2_XS 时延基准, 用 wall clock, TTFT 当 prefill。
+Assistant: decode throughput at 32K context usually dips versus 4K because KV reads grow.
+ttft = first_nonempty_delta_time
+pre = prompt_tokens / ttft
+dec = (completion_tokens - 1) / (wall - ttft)
+
+--- turn 0026 ---
+用户: 每次 run 用唯一 salt 前缀, 确认 cached_tokens 是 0 才算真冷测。
+Assistant: decode throughput at 32K context usually dips versus 4K because KV reads grow.
+usage = final_chunk[&#x27;usage&#x27;]
+cached = usage[&#x27;prompt_tokens_details&#x27;][&#x27;cached_tokens&#x27;]
+assert cached == 0, &#x27;warm prefix contaminated run&#x27;
+
+--- turn 0027 ---
+用户: 双 2080 Ti, Qwen3.8-Flash-Next IQ2_XS, 顺序执行无并发, 样本独立。
+Assistant: decode throughput at 32K context usually dips versus 4K because KV reads grow.
+usage = final_chunk[&#x27;usage&#x27;]
+cached = usage[&#x27;prompt_tokens_details&#x27;][&#x27;cached_tokens&#x27;]
+assert cached == 0, &#x27;warm prefix contaminated run&#x27;
+
+--- turn 0028 ---
+用户: 跑下 x99 基础时延测试, 参考格式 4K/128 三轮加 32K/512 一轮, 输出 mean/median。
+Assistant: Sequential runs, no concurrency: each run fully drains before next starts.
+stats = {&#x27;prefill&#x27;: [p[&#x27;pre&#x27;] for p in runs], &#x27;decode&#x27;: [p[&#x27;dec&#x27;] for p in runs]}
+print(f&#x27;{statistics.mean(v):.2f} / {statistics.median(v):.2f}&#x27;)
+
+--- turn 0029 ---
+用户: Strata IQ2_XS 时延基准, 用 wall clock, TTFT 当 prefill。
+Assistant: Sequential runs, no concurrency: each run fully drains before next starts.
+stats = {&#x27;prefill&#x27;: [p[&#x27;pre&#x27;] for p in runs], &#x27;decode&#x27;: [p[&#x27;dec&#x27;] for p in runs]}
+print(f&#x27;{statistics.mean(v):.2f} / {statistics.median(v):.2f}&#x27;)
+
+--- turn 0030 ---
+用户: 每次 run 用唯一 salt 前缀, 确认 cached_tokens 是 0 才算真冷测。
+Assistant: Sequential runs, no concurrency: each run fully drains before next starts.
+2026-10-09 Strata IQ2_XS latency bench: 4K/128 x3 + 32K/512 x1, unique salts, cold confirmed via cached_tokens=0
+
+--- turn 0031 ---
+用户: 双 2080 Ti, Qwen3.8-Flash-Next IQ2_XS, 顺序执行无并发, 样本独立。
+Assistant: Sequential runs, no concurrency: each run fully drains before next starts.
+2026-10-09 Strata IQ2_XS latency bench: 4K/128 x3 + 32K/512 x1, unique salts, cold confirmed via cached_tokens=0
+
+--- turn 0032 ---
+用户: 跑下 x99 基础时延测试, 参考格式 4K/128 三轮加 32K/512 一轮, 输出 mean/median。
+Assistant: The unique per-run salt defeats the Strata prefix cache by design; cached_tokens must read zero.
+ttft = first_nonempty_delta_time
+pre = prompt_tokens / ttft
+dec = (completion_tokens - 1) / (wall - ttft)
+
+--- turn 0033 ---
+用户: Strata IQ2_XS 时延基准, 用 wall clock, TTFT 当 prefill。
+Assistant: The unique per-run salt defeats the Strata prefix cache by design; cached_tokens must read zero.
+ttft = first_nonempty_delta_time
+pre = prompt_tokens / ttft
+dec = (completion_tokens - 1) / (wall - ttft)
+
+--- turn 0034 ---
+用户: 每次 run 用唯一 salt 前缀, 确认 cached_tokens 是 0 才算真冷测。
+Assistant: The unique per-run salt defeats the Strata prefix cache by design; cached_tokens must read zero.
+usage = final_chunk[&#x27;usage&#x27;]
+cached = usage[&#x27;prompt_tokens_details&#x27;][&#x27;cached_tokens&#x27;]
+assert cached == 0, &#x27;warm prefix contaminated run&#x27;
+
+--- turn 0035 ---
+用户: 双 2080 Ti, Qwen3.8-Flash-Next IQ2_XS, 顺序执行无并发, 样本独立。
+Assistant: The unique per-run salt defeats the Strata prefix cache by design; cached_tokens must read zero.
+usage = final_chunk[&#x27;usage&#x27;]
+cached = usage[&#x27;prompt_tokens_details&#x27;][&#x27;cached_tokens&#x27;]
+assert cached == 0, &#x27;warm prefix contaminated run&#x27;
+
+--- turn 0036 ---
+用户: 跑下 x99 基础时延测试, 参考格式 4K/128 三轮加 32K/512 一轮, 输出 mean/median。
+Assistant: Strata does not self-report prompt_eval_duration, so wall-clock TTFT is the prefill proxy.
+stats = {&#x27;prefill&#x27;: [p[&#x27;pre&#x27;] for p in runs], &#x27;decode&#x27;: [p[&#x27;dec&#x27;] for p in runs]}
+print(f&#x27;{statistics.mean(v):.2f} / {statistics.median(v):.2f}&#x27;)
+
+--- turn 0037 ---
+用户: Strata IQ2_XS 时延基准, 用 wall clock, TTFT 当 prefill。
+Assistant: Strata does not self-report prompt_eval_duration, so wall-clock TTFT is the prefill proxy.
+stats = {&#x27;prefill&#x27;: [p[&#x27;pre&#x27;] for p in runs], &#x27;decode&#x27;: [p[&#x27;dec&#x27;] for p in runs]}
+print(f&#x27;{statistics.mean(v):.2f} / {statistics.median(v):.2f}&#x27;)
+
+--- turn 0038 ---
+用户: 每次 run 用唯一 salt 前缀, 确认 cached_tokens 是 0 才算真冷测。
+Assistant: Strata does not self-report prompt_eval_duration, so wall-clock TTFT is the prefill proxy.
+2026-10-09 Strata IQ2_XS latency bench: 4K/128 x3 + 32K/512 x1, unique salts, cold confirmed via cached_tokens=0
+
+--- turn 0039 ---
+用户: 双 2080 Ti, Qwen3.8-Flash-Next IQ2_XS, 顺序执行无并发, 样本独立。
+Assistant: Strata does not self-report prompt_eval_duration, so wall-clock TTFT is the prefill proxy.
+2026-10-09 Strata IQ2_XS latency bench: 4K/128 x3 + 32K/512 x1, unique salts, cold confirmed via cached_tokens=0
+
+--- turn 0040 ---
+用户: 跑下 x99 基础时延测试</pre></details><details open><summary>输出 reasoning（496 chars）</summary><pre>We need answer user&#x27;s request. User says: &quot;You are a benchmark oracle. Answer with the word &#x27;bench&#x27; repeated 300 times, separated by single spaces, and nothing else.&quot; Then there is a long conversation with turns, final user: &quot;用户: 跑下 x99 基础时延测试&quot; maybe incomplete. But top instruction likely overrides? Need output exactly &#x27;bench&#x27; repeated 300 times separated by single spaces, nothing else. Need ensure 300 words. Could generate manually? Need final only. </pre></details><div class="meta">计时: TTFT 5.80s · 首→末 token 1.58s · wall 7.38s · text chunks 128 · cached_tokens 0 · decode x99口径 80.35 tok/s · launcher口径 80.37 tok/s</div></body></html>
