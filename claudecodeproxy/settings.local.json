@@ -1,0 +1,25 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx hyperframes *)",
+      "Bash(apt-get update *)",
+      "Bash(apt-get install *)",
+      "Bash(dnf install *)",
+      "Bash(yum install *)",
+      "Bash(dnf search *)",
+      "Bash(ffmpeg -encoders)",
+      "Bash(ffmpeg *)",
+      "Bash(curl -sSL https://resource.fit2cloud.com/1panel/package/quick_start.sh -o /tmp/1panel_install.sh)",
+      "Bash(bash /tmp/1panel_install.sh)",
+      "Bash(pip list *)",
+      "Bash(pip show *)",
+      "Bash(pip install *)",
+      "Read(//usr/local/bin/**)",
+      "Read(//home/**)",
+      "Bash(echo \"---EXIT: $?\")",
+      "Bash(timeout 5 /usr/local/bin/uv --directory /root/.claude/skills/baidu-netdisk/scripts/netdisk-mcp-server-stdio run netdisk.py)",
+      "Bash(timeout 10 /usr/local/bin/uv --directory /root/.claude/skills/baidu-netdisk/scripts/netdisk-mcp-server-stdio run netdisk.py)",
+      "Bash(/usr/local/bin/uv python *)"
+    ]
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "env": {
+    "ANTHROPIC_AUTH_TOKEN": "<your-anthropic-auth-token>",
+    "ANTHROPIC_BASE_URL": "http://127.0.0.1:28001",
+    "ANTHROPIC_DEFAULT_HAIKU_MODEL": "glm-5.1",
+    "ANTHROPIC_DEFAULT_OPUS_MODEL": "glm-5.1",
+    "ANTHROPIC_DEFAULT_SONNET_MODEL": "glm-5.1",
+    "ANTHROPIC_MODEL": "glm-5.1",
+    "ANTHROPIC_REASONING_MODEL": "glm-5.1"
+  },
+  "includeCoAuthoredBy": false,
+  "permissions": {
+    "allow": [],
+    "deny": []
+  },
+  "model": "MacJd-Qwen36-35B",
+  "availableModels": [
+    "glm-4.7",
+    "glm-5.1",
+    "MacJd-Qwen36-35B"
+  ],
+  "modelPicker": {
+    "options": [
+      {
+        "model": "MacJd-Qwen36-35B",
+        "label": "MacJd-Qwen36-35B (本地)",
+        "description": "本地 omlx 35B · 100k 上下文 · 经 28001 路由",
+        "behavesAs": "claude-sonnet-5-5"
+      }
+    ]
+  },
+  "effortLevel": "low"
+}

@@ -1,0 +1,19 @@
+总结分析：
+
+Strata 服务异常退出的原因：内存不足 (OOM)
+
+从 serve.log 可以看到关键信息：
+
+1. 请求持续增长 — 最近一个请求的上下文长度从 ~44K tokens 一路涨到 68805 tokens
+2. 后端负重载 — 模型 IQ2_XS 是 27B 参数，显存+RAM 已经满负荷运行
+3. 每次新请求都会加载大量新专家到内存（resident RAM 从 29GB 涨到 46GB expert blobs）
+4. Linux OOM Killer 介入 — 进程收到 SIGKILL (exit code -15)
+
+根因：您的机器有 48GB RAM，但 IQ2_XS 模型在超长上下文下专家缓存占用了超过可用内存（resident RAM 中 expert blobs 占 46GB），Linux OOM Killer 终止了进程。
+
+建议：
+- 降低 MAX_CONTEXT_LENGTH 或减少并发请求
+- 重启时加 --ram-limit 参数限制 RAM 使用
+- 或者改用更小的量化模型（IQ2_XS 已经是 IQ 系列中最小的了，但 27B 参数本身比较大）
+
+需要我帮你重启服务并加上 RAM 限制参数吗？

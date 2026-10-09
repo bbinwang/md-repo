@@ -1,0 +1,22 @@
+{
+  "env": {
+    "ANTHROPIC_AUTH_TOKEN": "b4df6f4bcaf84015896e3fd9f3fdb3c6.1noP5G0M87MuiPBj",
+    "ANTHROPIC_BASE_URL": "https://open.bigmodel.cn/api/anthropic",
+    "ANTHROPIC_DEFAULT_HAIKU_MODEL": "glm-5.1",
+    "ANTHROPIC_DEFAULT_OPUS_MODEL": "glm-5.1",
+    "ANTHROPIC_DEFAULT_SONNET_MODEL": "glm-5.1",
+    "ANTHROPIC_MODEL": "glm-5.1",
+    "ANTHROPIC_REASONING_MODEL": "glm-5.1"
+  },
+  "includeCoAuthoredBy": false,
+  "permissions": {
+    "allow": [],
+    "deny": []
+  },
+  "model": "opus[1m]",
+  "availableModels": [
+    "glm-4.7",
+    "glm-5.1"
+  ],
+  "effortLevel": "low"
+}
